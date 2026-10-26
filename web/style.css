@@ -383,3 +383,12 @@ input[type=range]{width:100%;margin-top:10px;accent-color:var(--acc)}
   .item,.item.grp{grid-template-columns:36px 1fr 110px}.item .price,.item .addbtn{display:none}
   .grid2{grid-template-columns:1fr}
 }
+
+/* update available: a card in the corner and a link under the version */
+.updcard{position:fixed;right:20px;bottom:20px;z-index:40;width:340px;max-width:calc(100vw - 40px);box-sizing:border-box;
+  background:var(--card);border:1px solid var(--line);border-left:4px solid var(--brand0);border-radius:12px;padding:14px 16px;
+  box-shadow:0 10px 30px rgba(0,0,0,.18);display:grid;gap:6px}
+.updtitle{font-weight:700}
+.updbtns{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.updlink{display:block;margin-top:3px;padding:0;border:0;background:none;color:var(--brand0);font:inherit;font-weight:600;cursor:pointer}
+.updlink:hover{text-decoration:underline}

@@ -45,6 +45,7 @@ filament system (K2 / K1 / Hi) with a cheap USB NFC reader. No account, no cloud
 
 **Runs in the background**
 - Closing the window keeps the app in the menu bar, so printer usage is still tracked. Optionally opens at login.
+- Tells you when a new version is out (checks GitHub once a day; can be switched off).
 
 **Your data**
 - Cost per print and a monthly total.

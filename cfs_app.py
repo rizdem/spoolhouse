@@ -366,6 +366,7 @@ def main():
     cfs_gui.start_printer_sync()  # charges spools for printer usage while the app runs
     cfs_gui.start_backup_scheduler()  # automatic backups to the chosen folder (e.g. a NAS)
     cfs_gui.start_watchers()  # low stock, prints to charge and the reader, for notifications
+    cfs_gui.start_update_checker()  # once a day: is a newer version out on GitHub?
     APP["window"] = webview.create_window(
         cfs_gui.APP_NAME, f"http://127.0.0.1:{srv.server_address[1]}",
         width=1040, height=800, min_size=(760, 560), hidden=background,

@@ -37,7 +37,7 @@ Status: ✅ done · 🚧 in progress · 📋 planned
 |---|---|---|
 | ✅ | **App name** | **Spoolhouse** ([spoolhouse.app](https://spoolhouse.app)), "Filament inventory for Creality CFS". Creality and CFS stay out of the name itself (they're Creality's trademarks). |
 | ✅ | **App icon** | "One Strand": a single line of filament that winds into a spool and draws the house (`branding/Spoolhouse.svg`). |
-| 📋 | **Update available notice** | The app checks GitHub releases and tells you when a newer version is out. |
+| ✅ | **Update available notice** | Checks GitHub releases once a day; notification, a card with Download / Later / Skip this version, and Settings → Updates. |
 | 📋 | **In-app updates** | Download and install a new version from inside the app (Settings → Updates), keeping your data, instead of replacing the app by hand. |
 | 📋 | **Developer ID signing and notarization** | Opens without the "unidentified developer" warning (needs an Apple Developer membership). |
 | ✅ | **Split the interface into files** | Move the page out of `cfs_gui.py` into separate HTML, CSS and JS files, so it's easier to contribute to. |
