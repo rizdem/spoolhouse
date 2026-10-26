@@ -4,8 +4,11 @@
 
 <p align="center">
   <a href="https://spoolhouse.app">spoolhouse.app</a> ·
-  <a href="https://github.com/rizdem/spoolhouse/releases/latest">Download for Mac</a> ·
-  <a href="https://buymeacoffee.com/rizdem">Buy me a beer 🍺</a>
+  <a href="https://github.com/rizdem/spoolhouse/releases/latest">Download for Mac</a>
+</p>
+
+<p align="center">
+  <a href="https://buymeacoffee.com/rizdem"><img src="branding/bmc-button.svg" alt="Buy me a beer" height="44"></a>
 </p>
 
 A free Mac app that keeps track of every spool of filament you own: what's left, what it cost, what's
@@ -115,4 +118,6 @@ change it, and anything built from it must stay open source under the same licen
 
 ## Support
 
-If this saves you time, you can [buy me a beer](https://buymeacoffee.com/rizdem). 🍺
+If this saves you time, you can buy me a beer:
+
+<a href="https://buymeacoffee.com/rizdem"><img src="branding/bmc-button.svg" alt="Buy me a beer" height="44"></a>

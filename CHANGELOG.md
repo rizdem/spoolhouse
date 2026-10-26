@@ -3,6 +3,17 @@
 Versions follow [semantic versioning](https://semver.org): **major** for big or breaking
 changes, **minor** for new features, **patch** for bug fixes.
 
+## 2.2.0 - 2026-10-26
+
+### Added
+- **About box**: click the version number in the sidebar, or Settings → Updates → About. It shows the version,
+  links to spoolhouse.app, the source code and reporting a problem, the credit to DnG-Crafts/K2-RFID, the
+  licence, and the Buy Me a Coffee button.
+
+### Changed
+- "Buy me a beer" now uses Buy Me a Coffee's own button (their cup logo, font and yellow, made with their
+  button generator), in the sidebar, the About box and the README.
+
 ## 2.1.0 - 2026-10-26
 
 ### Added

@@ -32,8 +32,10 @@ nav .reader.stuck .rt{color:#d97706}
 .toast .rdot{width:9px;height:9px;border-radius:50%}
 @keyframes rise2{from{transform:translateY(16px);opacity:0}to{transform:none;opacity:1}}
 nav .support:not([hidden])+.reader{margin-top:0}
-nav .support{margin-top:auto;color:var(--ink);border:1px solid var(--line);background:var(--card);justify-content:center;font-weight:600}
-nav .support:hover{background:var(--card);border-color:#d97706}
+/* Buy Me a Coffee's own generated button (their cup, font and yellow), shown as-is */
+nav .support{margin-top:auto;padding:0;border:0;background:none;justify-content:center}
+nav .support img,.abbmc img{display:block;width:100%;max-width:180px;height:auto}
+nav .support:hover,.abbmc:hover{background:none;filter:brightness(1.04)}
 nav .ver{padding:0 10px 4px;font-size:11px;color:var(--mute)}
 
 .view{overflow-y:auto;height:100%}
@@ -392,3 +394,21 @@ input[type=range]{width:100%;margin-top:10px;accent-color:var(--acc)}
 .updbtns{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
 .updlink{display:block;margin-top:3px;padding:0;border:0;background:none;color:var(--brand0);font:inherit;font-weight:600;cursor:pointer}
 .updlink:hover{text-decoration:underline}
+
+/* About box */
+.verbtn{padding:0;border:0;background:none;color:inherit;font:inherit;cursor:pointer;display:inline}
+nav .verbtn{width:auto;padding:0}
+nav .verbtn:hover{background:none;text-decoration:underline}
+.sheet.about{max-width:420px;text-align:center;display:grid;justify-items:center;gap:6px}
+.abicon{width:112px;height:112px;margin-top:4px}
+.abname{margin:4px 0 0;font:800 30px/1.1 ui-rounded,"SF Pro Rounded",system-ui,sans-serif;
+  background:linear-gradient(100deg,var(--brand0),var(--brand1));-webkit-background-clip:text;background-clip:text;color:transparent}
+.abver{color:var(--mute);font-size:13px}
+.abtag{margin:6px 0 2px;text-wrap:balance}
+.ablinks{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 16px}
+.linkbtn{padding:0;border:0;background:none;color:var(--acc);font:inherit;cursor:pointer}
+.linkbtn:hover{text-decoration:underline}
+.abcredit{margin:4px 0 0;font-size:13px;max-width:44ch;text-wrap:balance}
+.abbmc{margin:10px 0 2px;padding:0;border:0;background:none;cursor:pointer;width:200px}
+.abbmc img{max-width:200px}
+.sheet.about .foot{width:100%}
