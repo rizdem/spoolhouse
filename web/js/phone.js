@@ -1,5 +1,5 @@
 // Spoolhouse - Settings → Phone access: switch it on, pair a phone with a QR code, remove phones.
-const ago=t=>{if(!t)return"never";const s=Date.now()/1000-t;return s<90?"just now":s<3600?`${Math.round(s/60)} min ago`:s<86400?`${Math.round(s/3600)} h ago`:new Date(t*1000).toLocaleDateString()};
+const phAgo=t=>{if(!t)return"never";const s=Date.now()/1000-t;return s<90?"just now":s<3600?`${Math.round(s/60)} min ago`:s<86400?`${Math.round(s/3600)} h ago`:new Date(t*1000).toLocaleDateString()};
 let PH=null, phPoll=null;
 function showPhone(s){
   PH=s; $("phOn").checked=s.enabled;
@@ -9,7 +9,7 @@ function showPhone(s){
   const box=$("phPhones"); box.replaceChildren();
   for(const p of s.phones){
     const row=el("div","setrow"), t=el("div");
-    t.appendChild(el("div","stt",p.name)); t.appendChild(el("div","mute",`Paired ${new Date(p.created*1000).toLocaleDateString()} · last used ${ago(p.last_seen)}`));
+    t.appendChild(el("div","stt",p.name)); t.appendChild(el("div","mute",`Paired ${new Date(p.created*1000).toLocaleDateString()} · last used ${phAgo(p.last_seen)}`));
     const b=el("button","btn danger","Remove"); b.onclick=async()=>{
       if(!confirm(`Remove ${p.name}? It won't be able to connect until it's paired again.`))return;
       try{showPhone(await call("/api/phone/remove",{id:p.id}))}catch(e){alert(e.message)}};

@@ -188,3 +188,18 @@ def test_about_links_open_only_known_pages(server, monkeypatch):
     assert post(server, "/api/open", {"link": "source"})["ok"]
     assert not post(server, "/api/open", {"link": "https://evil.example"})["ok"]
     assert opened == ["https://github.com/rizdem/spoolhouse"]
+
+
+def test_interface_scripts_never_declare_the_same_name_twice():
+    # the page loads web/js/*.js as plain scripts sharing one scope: a second top-level `const x`
+    # makes the browser drop that whole file (Phone access once vanished from Settings this way)
+    import os
+    import re
+    html = open(os.path.join(cfs_gui.web_dir(), "index.html")).read()
+    seen = {}
+    for name in re.findall(r'src="js/([\w-]+\.js)', html):
+        src = open(os.path.join(cfs_gui.web_dir(), "js", name)).read()
+        for decl in re.findall(r"^(?:const|let|var|function|class|async function)\s+([A-Za-z_$][\w$]*)", src, re.M):
+            assert decl not in seen, f"{decl} is declared in both {seen[decl]} and {name}"
+            seen[decl] = name
+    assert "loadPhone" in seen and "loadSettings" in seen
