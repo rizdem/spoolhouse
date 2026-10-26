@@ -68,3 +68,29 @@ def test_printer_routing_of_filaments_to_slots():
     box = {"map": {"T1A": "T1C", "T1B": "T1B", "T1C": "T1C", "T2A": "T2A"}}
     assert printer.slot_routing(box) == {0: "1-2", 1: "1-1", 2: "1-2", 4: "2-0"}
     assert printer.slot_routing({}) == {}
+
+
+def test_job_progress_and_time_left(monkeypatch):
+    import io
+    import json as _json
+    replies = {
+        "/printer/objects/query": {"status": {"print_stats": {"state": "printing", "filename": "box.gcode",
+                                                              "filament_used": 1234.5, "print_duration": 3600},
+                                              "virtual_sdcard": {"progress": 0.4}}},
+        "/server/history/list": {"jobs": [{"job_id": "0000AA", "status": "in_progress", "filename": "box.gcode"}]},
+        "/server/files/metadata": {"estimated_time": None},
+    }
+
+    def fake(url, timeout=None):
+        path = url.split(":7125", 1)[1].split("?", 1)[0]
+        return io.BytesIO(_json.dumps({"result": replies[path]}).encode())
+    monkeypatch.setattr(printer.urllib.request, "urlopen", fake)
+    printer._ESTIMATES.clear()
+    job = printer.fetch_job("k2.local")
+    assert job["progress"] == 0.4 and job["print_secs"] == 3600
+    assert job["left_secs"] == 5400            # 40% in an hour: about 1.5 h to go
+    replies["/server/files/metadata"] = {"estimated_time": 10000}
+    printer._ESTIMATES.clear()
+    assert printer.fetch_job("k2.local")["left_secs"] == 6400   # the slicer's estimate wins
+    replies["/printer/objects/query"]["status"]["print_stats"]["state"] = "standby"
+    assert printer.fetch_job("k2.local")["progress"] is None

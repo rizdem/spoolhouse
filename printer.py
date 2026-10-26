@@ -144,13 +144,20 @@ def fetch_job(host):
         with urllib.request.urlopen(f"http://{host}:{MOONRAKER_PORT}{path}", timeout=TIMEOUT) as r:
             return json.load(r)["result"]
     try:
-        ps = get("/printer/objects/query?print_stats")["status"]["print_stats"]
+        status = get("/printer/objects/query?print_stats&virtual_sdcard")["status"]
+        ps, sd = status["print_stats"], status.get("virtual_sdcard") or {}
         last = (get("/server/history/list?limit=1&order=desc").get("jobs") or [None])[0]
     except Exception as e:
         raise IOError(f"Couldn't read the current print from {host}. ({e})")
     name = ps.get("filename") or (last or {}).get("filename") or ""
     m = re.search(r"_(PLA-CF|PLA|PETG-CF|PETG|ABS|ASA|TPU|PA-CF|PA|PC|PET)_", name, re.I)
+    progress = float(sd.get("progress") or 0)
+    secs = float(ps.get("print_duration") or 0)
+    running = ps.get("state") in ("printing", "paused")
     return {
+        "progress": round(progress, 4) if running else None,   # 0-1 through the file
+        "print_secs": round(secs) if running else None,
+        "left_secs": _time_left(host, name, progress, secs) if running else None,
         "filename": name,
         "state": ps.get("state") or "",            # printing, paused, complete, cancelled, standby, error
         "used_mm": float(ps.get("filament_used") or 0),
@@ -158,6 +165,26 @@ def fetch_job(host):
         "job_status": (last or {}).get("status"),  # in_progress while the job runs
         "type_hint": m.group(1).upper() if m else "",
     }
+
+
+_ESTIMATES = {}  # filename -> the slicer's estimated print time (s), or None
+
+
+def _time_left(host, filename, progress, secs):
+    """Seconds left: from the slicer's estimate when the file has one, else worked out from progress."""
+    if filename not in _ESTIMATES:
+        try:
+            with urllib.request.urlopen(f"http://{host}:{MOONRAKER_PORT}/server/files/metadata?filename="
+                                        f"{urllib.parse.quote(filename)}", timeout=TIMEOUT) as r:
+                _ESTIMATES[filename] = json.load(r)["result"].get("estimated_time")
+        except Exception:
+            _ESTIMATES[filename] = None
+    estimate = _ESTIMATES[filename]
+    if estimate:
+        return max(0, round(float(estimate) - secs))
+    if progress >= 0.02:  # too early and the guess is wild
+        return max(0, round(secs / progress - secs))
+    return None
 
 
 def job_total(host, job_id):
