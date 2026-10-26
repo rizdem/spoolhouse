@@ -11,7 +11,7 @@
   <a href="https://buymeacoffee.com/rizdem"><img src="branding/bmc-button.svg" alt="Buy me a beer" height="44"></a>
 </p>
 
-A free Mac app (Apple Silicon and Intel) that keeps track of every spool of filament you own: what's left, what it cost, what's
+A free app for Mac (Apple Silicon and Intel) and Windows that keeps track of every spool of filament you own: what's left, what it cost, what's
 loaded in your printer and what each print used. It writes and reads the RFID tags for Creality's CFS
 filament system (K2 / K1 / Hi) with a cheap USB NFC reader. No account, no cloud.
 
@@ -47,24 +47,32 @@ filament system (K2 / K1 / Hi) with a cheap USB NFC reader. No account, no cloud
 - Read-only: the app never sends commands to the printer.
 
 **Runs in the background**
-- Closing the window keeps the app in the menu bar, so printer usage is still tracked. Optionally opens at login.
+- Closing the window keeps the app in the menu bar (Mac) or system tray (Windows), so printer usage is still tracked. Optionally starts when you log in.
 - Tells you when a new version is out (checks GitHub once a day; can be switched off).
 
 **Your data**
 - Cost per print and a monthly total.
 - Automatic backups to a NAS or any folder, one-click backup and restore, and CSV export.
 
-Your data stays on your Mac in `~/Library/Application Support/Spoolhouse/inventory.db`.
+Your data stays on your computer: `~/Library/Application Support/Spoolhouse/inventory.db` on a Mac,
+`%APPDATA%\Spoolhouse\inventory.db` on Windows.
 Upgrading from CFS Tag Writer copies your data over automatically and keeps the old folder as a backup.
 
 ## What you need
 
-- A Mac with Apple Silicon (M1 or later) running macOS 11 or later, or an Intel Mac running macOS 10.15 Catalina or later.
+- Windows 10 or 11 (64-bit), a Mac with Apple Silicon (M1 or later) running macOS 11 or later, or an Intel Mac
+  running macOS 10.15 Catalina or later.
 - A PC/SC USB NFC reader for MIFARE Classic tags. Tested with the **ACS ACR122U**.
 - MIFARE Classic 1K tags or stickers.
 - Quit anything else using the reader first (e.g. SimplyPrint NFC Agent).
+- On Windows the ACR122U is usually set up automatically; if it isn't found, install ACS's driver from acs.com.hk.
 
 ## Install
+
+**Windows:** download `Spoolhouse-<version>-windows-setup.exe` from **Releases** and run it (no administrator
+needed). If SmartScreen says it protected your PC, click **More info → Run anyway**.
+
+**Mac:**
 
 1. Download from **Releases** and unzip it: `Spoolhouse-<version>-apple-silicon.zip` for M1 and later,
    or `Spoolhouse-<version>-intel.zip` for Intel Macs. (Apple menu → About This Mac shows which you have.)
@@ -82,6 +90,17 @@ uv pip install --python .venv/bin/python -r requirements-dev.txt
 ./build_app.sh intel    # the Intel version (setup steps are at the top of build_app.sh)
 ```
 
+On Windows (needs [Inno Setup 6](https://jrsoftware.org/isdl.php) for the installer):
+
+```bat
+uv venv --python 3.12 --python-preference only-managed .venv
+uv pip install --python .venv\Scripts\python.exe -r requirements-dev.txt
+.venv\Scripts\python.exe build_windows.py   :: tests, app, self-test, then dist\Spoolhouse-<version>-windows-setup.exe
+```
+
+**Releases are built by GitHub:** push a version tag (`git tag v2.4.0 && git push origin v2.4.0`) and the
+Build workflow makes all three downloads, self-tests them, and attaches them to a draft release.
+
 Run without building:
 
 ```bash
@@ -94,7 +113,9 @@ Run without building:
 
 | Path | What it is |
 |---|---|
-| `cfs_app.py` | The Mac app: window, menu bar, login item, notifications, file dialogs |
+| `cfs_app.py` | The desktop app: window, file dialogs, start-up (`--self-test` checks a build) |
+| `app_core.py` | Shared by Mac and Windows: log file, status lines for the menu bar / tray |
+| `app_mac.py`, `app_windows.py` | Menu bar or system tray, open at login / start with Windows, notifications |
 | `cfs_gui.py` | The local server the app talks to (also runs on its own in a browser) |
 | `web/` | The interface: `index.html`, `style.css` and `js/` (one file per area) |
 | `cfs_tag.py` | Reading and writing CFS tags (also a command-line tool) |
@@ -106,7 +127,7 @@ Run without building:
 
 - **"The NFC reader stopped responding"**: unplug the reader and plug it back in.
 - **No reader found**: check the USB connection and quit other NFC apps.
-- Logs are written to `~/Library/Logs/Spoolhouse.log`.
+- Logs are written to `~/Library/Logs/Spoolhouse.log` (Mac) or `%LOCALAPPDATA%\Spoolhouse\Spoolhouse.log` (Windows).
 
 ## Credits
 

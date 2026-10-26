@@ -3,6 +3,25 @@
 Versions follow [semantic versioning](https://semver.org): **major** for big or breaking
 changes, **minor** for new features, **patch** for bug fixes.
 
+## 2.4.0 - 2026-10-26
+
+### Added
+- **Windows version** (Windows 10 and 11, 64-bit), installed with `Spoolhouse-<version>-windows-setup.exe`.
+  Everything the Mac app does, with Windows equivalents:
+  - a **system tray icon** (by the clock) with the same status menu as the Mac's menu bar; closing the window
+    keeps Spoolhouse running there so printer usage is still tracked;
+  - **Start with Windows** (Settings, or the tray menu), the same as Task Manager's Startup apps;
+  - Windows **notifications**, amounts in your own currency format, and Windows wording throughout Settings;
+  - data in `%APPDATA%\Spoolhouse`, log in `%LOCALAPPDATA%\Spoolhouse`.
+  The installer needs no administrator, and opening Spoolhouse while it's already running brings it forward.
+- **Releases are built by GitHub**: pushing a version tag builds the Apple Silicon, Intel and Windows
+  downloads, runs the tests and a self-test of each built app, and puts them on a draft release.
+
+### Changed
+- The tests now run on Windows as well as macOS for every change.
+- Mac builds stop if any file inside needs a newer macOS than the app promises (11 for Apple Silicon,
+  10.15 for Intel).
+
 ## 2.3.0 - 2026-10-26
 
 ### Added

@@ -6,7 +6,7 @@ so scanning either tag finds the same record.
 
 Data lives outside the app bundle so rebuilding the app never touches it:
     ~/Library/Application Support/Spoolhouse/inventory.db   (macOS)
-    %APPDATA%\Spoolhouse\inventory.db                       (Windows)
+    %APPDATA%\\Spoolhouse\\inventory.db                     (Windows)
 (set SPOOLHOUSE_DATA_DIR to put it somewhere else). Data from before the rename (the app was called
 CFS Tag Writer) is copied over on first launch; the old folder is left as it was.
 """
