@@ -3,6 +3,16 @@
 Versions follow [semantic versioning](https://semver.org): **major** for big or breaking
 changes, **minor** for new features, **patch** for bug fixes.
 
+## 2.5.1 - 2026-10-26
+
+### Added
+- The phone app can add spools, update what's left (typed in or weighed) and edit their details.
+  Updates from a phone only change what it sends; everything else on the spool is kept.
+- Looking up a tag also says when its spool is in Recently deleted, so the phone can offer to restore it.
+
+### Fixed
+- A spool whose tag is already in your inventory can't be added a second time (from the phone or here).
+
 ## 2.5.0 - 2026-10-26
 
 ### Added
