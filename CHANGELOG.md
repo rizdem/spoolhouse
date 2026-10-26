@@ -3,6 +3,19 @@
 Versions follow [semantic versioning](https://semver.org): **major** for big or breaking
 changes, **minor** for new features, **patch** for bug fixes.
 
+## 2.3.0 - 2026-10-26
+
+### Added
+- **Intel Mac version.** A separate download, `Spoolhouse-<version>-intel.zip`, for Intel Macs running
+  macOS 10.15 Catalina or later. Same app and features; the Apple Silicon version needs macOS 11 or later.
+  Both versions read the same data, so you can switch between them.
+
+### Changed
+- Building: `./build_app.sh intel` builds the Intel version (from an Intel Python in `.venv-x86_64`), and
+  `./build_app.sh all` builds both. Each build runs the tests first on its own architecture.
+- On Intel Macs the app uses cryptography 48.0.1, the last release with an official Intel Mac build
+  (it is only used for the tag encryption).
+
 ## 2.2.0 - 2026-10-26
 
 ### Added
