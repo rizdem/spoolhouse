@@ -21,6 +21,7 @@ import webview  # noqa: E402
 
 import cfs_gui  # noqa: E402
 import inventory as inv  # noqa: E402
+import phone_access  # noqa: E402
 
 if core.IS_WINDOWS:
     import app_windows as ui  # noqa: E402
@@ -124,6 +125,7 @@ def main():
     cfs_gui.start_backup_scheduler()  # automatic backups to the chosen folder (e.g. a NAS)
     cfs_gui.start_watchers()  # low stock, prints to charge and the reader, for notifications
     cfs_gui.start_update_checker()  # once a day: is a newer version out on GitHub?
+    phone_access.start_if_enabled()  # the phone app's connection, if switched on in Settings
     window_extras, start_extras = ui.window_options()
     APP["window"] = webview.create_window(
         cfs_gui.APP_NAME, f"http://127.0.0.1:{srv.server_address[1]}",

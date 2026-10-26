@@ -177,6 +177,19 @@
 </div>
 
 <div class="card">
+  <label class="h">Phone access</label>
+  <p class="mute" style="margin:0 0 6px">Use your inventory and printers from the Spoolhouse phone app, over your home Wi-Fi.
+    The connection is encrypted, and only phones you pair can connect.</p>
+  <div class="setrow"><div><div class="stt">Let paired phones connect</div>
+    <div class="mute" id="phStatus">Off</div></div>
+    <label class="switch"><input type="checkbox" id="phOn"><span></span></label></div>
+  <div class="setrow" id="phPairRow" hidden><div><div class="stt">Pair a phone</div>
+    <div class="mute">Shows a QR code to scan with the phone app.</div></div>
+    <button class="btn" id="phPair">Pair a phone…</button></div>
+  <div id="phPhones"></div>
+</div>
+
+<div class="card">
   <label class="h">Updates</label>
   <div class="setrow"><div><div class="stt">Check for updates automatically</div>
     <div class="mute">Once a day, asks GitHub whether a newer version is out. Nothing about you or your data is sent.</div></div>
@@ -233,6 +246,17 @@
 </div>
 
 
+
+<div class="overlay" id="phoneSheet" hidden>
+  <div class="sheet pairsheet" role="dialog" aria-modal="true" aria-labelledby="phTitle">
+    <h2 id="phTitle">Pair a phone</h2>
+    <p class="mute" id="phIntro">In the Spoolhouse phone app, tap <b>Connect to your computer</b> and scan this code.</p>
+    <div class="qr" id="phQr"></div>
+    <div class="pairmanual mute" id="phManual"></div>
+    <p class="pairdone" id="phDone" hidden></p>
+    <div class="foot"><span class="sp"></span><button class="btn pri" id="phClose">Close</button></div>
+  </div>
+</div>
 
 <div class="overlay" id="aboutSheet" hidden>
   <div class="sheet about" role="dialog" aria-modal="true" aria-labelledby="abTitle">
@@ -358,6 +382,7 @@
 <script src="js/settings.js?v=__VERSION__"></script>
 <script src="js/updates.js?v=__VERSION__"></script>
 <script src="js/about.js?v=__VERSION__"></script>
+<script src="js/phone.js?v=__VERSION__"></script>
 <script src="js/printlog.js?v=__VERSION__"></script>
 <script src="js/printer-edit.js?v=__VERSION__"></script>
 <script src="js/main.js?v=__VERSION__"></script>
