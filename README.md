@@ -11,7 +11,7 @@
   <a href="https://buymeacoffee.com/rizdem"><img src="branding/bmc-button.svg" alt="Buy me a beer" height="44"></a>
 </p>
 
-A free Mac app that keeps track of every spool of filament you own: what's left, what it cost, what's
+A free Mac app (Apple Silicon and Intel) that keeps track of every spool of filament you own: what's left, what it cost, what's
 loaded in your printer and what each print used. It writes and reads the RFID tags for Creality's CFS
 filament system (K2 / K1 / Hi) with a cheap USB NFC reader. No account, no cloud.
 
@@ -59,14 +59,15 @@ Upgrading from CFS Tag Writer copies your data over automatically and keeps the 
 
 ## What you need
 
-- A Mac with Apple Silicon (M1 or later).
+- A Mac with Apple Silicon (M1 or later) running macOS 11 or later, or an Intel Mac running macOS 10.15 Catalina or later.
 - A PC/SC USB NFC reader for MIFARE Classic tags. Tested with the **ACS ACR122U**.
 - MIFARE Classic 1K tags or stickers.
 - Quit anything else using the reader first (e.g. SimplyPrint NFC Agent).
 
 ## Install
 
-1. Download `Spoolhouse-<version>-apple-silicon.zip` from **Releases** and unzip it.
+1. Download from **Releases** and unzip it: `Spoolhouse-<version>-apple-silicon.zip` for M1 and later,
+   or `Spoolhouse-<version>-intel.zip` for Intel Macs. (Apple menu → About This Mac shows which you have.)
 2. Drag **Spoolhouse** into **Applications**.
 3. **First launch:** the app isn't notarized by Apple, so macOS will block it the first time.
    Open **System Settings → Privacy & Security**, scroll down and click **Open Anyway**,
@@ -78,6 +79,7 @@ Upgrading from CFS Tag Writer copies your data over automatically and keeps the 
 uv venv --python 3.12 --python-preference only-managed .venv
 uv pip install --python .venv/bin/python -r requirements-dev.txt
 ./build_app.sh          # runs the tests, then builds dist/Spoolhouse.app and a release zip
+./build_app.sh intel    # the Intel version (setup steps are at the top of build_app.sh)
 ```
 
 Run without building:
