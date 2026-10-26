@@ -1,6 +1,12 @@
-# Spoolhouse
+<p align="center">
+  <img src="branding/banner.png" alt="Spoolhouse: filament inventory for Creality CFS" width="800">
+</p>
 
-**Filament inventory for Creality CFS** · [spoolhouse.app](https://spoolhouse.app)
+<p align="center">
+  <a href="https://spoolhouse.app">spoolhouse.app</a> ·
+  <a href="https://github.com/rizdem/spoolhouse/releases/latest">Download for Mac</a> ·
+  <a href="https://buymeacoffee.com/rizdem">Buy me a beer 🍺</a>
+</p>
 
 A free Mac app that keeps track of every spool of filament you own: what's left, what it cost, what's
 loaded in your printer and what each print used. It writes and reads the RFID tags for Creality's CFS
