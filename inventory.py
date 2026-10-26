@@ -5,7 +5,8 @@ A spool is identified by the serial written to its tags (both tags of a spool sh
 so scanning either tag finds the same record.
 
 Data lives outside the app bundle so rebuilding the app never touches it:
-    ~/Library/Application Support/Spoolhouse/inventory.db
+    ~/Library/Application Support/Spoolhouse/inventory.db   (macOS)
+    %APPDATA%\Spoolhouse\inventory.db                       (Windows)
 (set SPOOLHOUSE_DATA_DIR to put it somewhere else). Data from before the rename (the app was called
 CFS Tag Writer) is copied over on first launch; the old folder is left as it was.
 """
@@ -19,10 +20,19 @@ import os
 import secrets
 import shutil
 import sqlite3
+import sys
 import threading
 import time
 
-DEFAULT_DATA_DIR = os.path.expanduser("~/Library/Application Support/Spoolhouse")
+def _default_data_dir():
+    if sys.platform == "win32":
+        return os.path.join(os.environ.get("APPDATA") or os.path.expanduser(r"~\AppData\Roaming"), "Spoolhouse")
+    if sys.platform == "darwin":
+        return os.path.expanduser("~/Library/Application Support/Spoolhouse")
+    return os.path.join(os.environ.get("XDG_DATA_HOME") or os.path.expanduser("~/.local/share"), "Spoolhouse")
+
+
+DEFAULT_DATA_DIR = _default_data_dir()
 OLD_DATA_DIR = os.path.expanduser("~/Library/Application Support/CFS Tag Writer")  # before 2.0
 DATA_DIR = os.environ.get("SPOOLHOUSE_DATA_DIR") or os.environ.get("CFS_DATA_DIR") or DEFAULT_DATA_DIR
 DB_PATH = os.path.join(DATA_DIR, "inventory.db")

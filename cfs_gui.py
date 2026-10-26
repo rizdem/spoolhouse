@@ -55,7 +55,8 @@ LOCK = threading.Lock()
 CANCEL = threading.Event()
 LOCK_TIMEOUT = 35  # seconds a request waits for the reader before giving up
 on_error = lambda text: None  # noqa: E731 - cfs_app points this at its log file
-NATIVE = {}  # filled in by cfs_app with things only the Mac app can do (menu bar, login item, dialogs)
+NATIVE = {}  # filled in by cfs_app with things only the desktop app can do (menu bar/tray, login item, dialogs)
+PLATFORM = "windows" if sys.platform == "win32" else "mac"
 
 
 # ---------------------------------------------------------------- printers
@@ -249,7 +250,7 @@ def notify_enabled(kind):
 
 
 def notify(kind, title, body):
-    """Show a macOS notification (Mac app only), if that kind is switched on."""
+    """Show a system notification (desktop app only), if that kind is switched on."""
     if not notify_enabled(kind) or "notify" not in NATIVE:
         return
     try:
@@ -265,13 +266,17 @@ def notify_once(kind, key, title, body):
 
 
 def money(x):
-    """Format an amount in the Mac's own currency (falls back to plain numbers elsewhere)."""
+    """Format an amount in the computer's own currency (falls back to a plain number)."""
     try:
-        import Foundation
-        f = Foundation.NSNumberFormatter.alloc().init()
-        f.setNumberStyle_(Foundation.NSNumberFormatterCurrencyStyle)
-        f.setLocale_(Foundation.NSLocale.currentLocale())
-        return f.stringFromNumber_(round(x, 2))
+        if sys.platform == "darwin":
+            import Foundation
+            f = Foundation.NSNumberFormatter.alloc().init()
+            f.setNumberStyle_(Foundation.NSNumberFormatterCurrencyStyle)
+            f.setLocale_(Foundation.NSLocale.currentLocale())
+            return f.stringFromNumber_(round(x, 2))
+        import locale
+        locale.setlocale(locale.LC_MONETARY, "")  # the user's regional settings
+        return locale.currency(round(x, 2), grouping=True)
     except Exception:
         return f"{x:.2f}"
 
@@ -755,7 +760,7 @@ def backup_api(path, body):
         return {"path": inv.backup_to(target)}
     if path == "/api/backup/pick_restore":
         if not native:
-            raise IOError("Restoring is available in the Mac app.")
+            raise IOError("Restoring is available in the app, not in a browser.")
         chosen = NATIVE["open_file"]()
         if not chosen:
             return {"cancelled": True}
@@ -801,6 +806,11 @@ def light_api(path, body):
         if SUPPORT_URL:
             webbrowser.open(SUPPORT_URL)
         return {"ok": bool(SUPPORT_URL)}
+    if path == "/api/app/show":
+        # a second copy of the app being opened asks this one to come forward
+        if "show" in NATIVE:
+            NATIVE["show"]()
+        return {"ok": "show" in NATIVE}
     if path == "/api/open":
         url = LINKS.get(body.get("link"))
         if url:
@@ -847,7 +857,7 @@ def light_api(path, body):
                 "kinds": [{"kind": k, "label": l, "help": h, "on": notify_enabled(k)} for k, l, h in NOTIFY_KINDS]}
     if path == "/api/notify/test":
         if "notify" not in NATIVE:
-            raise IOError("Notifications are available in the Mac app.")
+            raise IOError("Notifications are available in the app, not in a browser.")
         NATIVE["notify"](APP_NAME, "Notifications are working.")
         return {"ok": True}
     if path == "/api/app/settings":
@@ -997,7 +1007,7 @@ def page():
     with open(os.path.join(web_dir(), "index.html"), encoding="utf-8") as f:
         html = f.read()
     config = {"materials": cfs.MATERIALS, "weights": list(cfs.WEIGHTS), "grams": inv.GRAMS,
-              "support": bool(SUPPORT_URL)}
+              "support": bool(SUPPORT_URL), "platform": PLATFORM}
     return (html.replace("__CONFIG__", json.dumps(config)).replace("__VERSION__", APP_VERSION)
             .replace("__APP_NAME__", APP_NAME))
 

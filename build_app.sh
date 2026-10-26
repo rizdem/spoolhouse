@@ -49,6 +49,7 @@ PLIST="$OUT/$NAME.app/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c "Add :LSMinimumSystemVersion string $MIN_OS" "$PLIST" 2>/dev/null \
   || /usr/libexec/PlistBuddy -c "Set :LSMinimumSystemVersion $MIN_OS" "$PLIST"
 codesign --force --deep --sign - "$OUT/$NAME.app"  # re-seal after the plist edit (ad-hoc)
+python3 tools/check_minos.py "$OUT/$NAME.app" "$MIN_OS" "$ARCH" || { echo "Not releasing: see above."; exit 1; }
 
 rm -rf "build_tmp/$ARCH" "$OUT/$NAME"
 rmdir build_tmp 2>/dev/null || true
