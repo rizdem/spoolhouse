@@ -3,6 +3,14 @@
 Versions follow [semantic versioning](https://semver.org): **major** for big or breaking
 changes, **minor** for new features, **patch** for bug fixes.
 
+## 2.6.0 - 2026-10-26
+
+### Added
+- **Print progress and time left**: while printing, the printer page shows how far through the print is and
+  about how long is left (from the slicer's estimate when the file has one, otherwise from progress so far).
+  The phone app shows the same.
+- The phone app's Printers tab and shopping list use the existing printer and shopping requests.
+
 ## 2.5.1 - 2026-10-26
 
 ### Added

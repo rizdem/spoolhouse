@@ -1,4 +1,6 @@
 // Spoolhouse - Printers: the printers list, a printer's slots, Will it fit? and collapsible sections.
+// time left as "1 h 25 min" / "12 min"
+const fmtLeft=s=>{const m=Math.round(s/60);return m>=60?`${Math.floor(m/60)} h ${m%60} min`:`${Math.max(1,m)} min`};
 // ---------- printers
 let printers=[], models=[], curPrinter=store.get("printer",null), pState=null, pLogLoaded=false, editingPrinter=null;
 const ago=t=>{if(!t)return"";const s=Math.round(Date.now()/1000-t);return s<60?"just now":s<3600?`${Math.round(s/60)} min ago`:new Date(t*1000).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})};
@@ -55,7 +57,7 @@ function renderPrinter(){
   const ps=$("pStatus"), job=st.job||{}, run=job.state==="printing"||job.state==="paused";
   if(st.error){ps.className="pstatus bad";ps.textContent=st.error}
   else{ps.className="pstatus";ps.textContent=[`Connected`,`synced ${ago(st.at)}`,
-    run?`${job.state==="paused"?"Paused":"Printing"}: ${(job.used_mm/1000).toFixed(1)} m used so far, checked every ${st.fast_secs}s`:`Idle, checked every ${st.sync_secs}s while the app is open`,
+    run?`${job.state==="paused"?"Paused":"Printing"}${job.progress!=null?` ${Math.round(job.progress*100)}%`:""}${job.left_secs!=null?`, about ${fmtLeft(job.left_secs)} left`:""}: ${(job.used_mm/1000).toFixed(1)} m used so far, checked every ${st.fast_secs}s`:`Idle, checked every ${st.sync_secs}s while the app is open`,
     st.no_cfs&&"No CFS found: link the spool on the holder to track it"].filter(Boolean).join(" · ")}
   renderFit();
   const box=$("pSlots"); box.replaceChildren();
