@@ -23,11 +23,12 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import cfs_tag as cfs
 import inventory as inv
+import updates
 import printer
 
 PORT = 8765
 APP_NAME = "Spoolhouse"
-APP_VERSION = "2.0.3"
+APP_VERSION = "2.1.0"
 # Your Buy Me a Coffee (or Ko-fi / GitHub Sponsors) page. Leave empty to hide the Support button.
 SUPPORT_URL = "https://buymeacoffee.com/rizdem"
 
@@ -230,6 +231,7 @@ NOTIFY_KINDS = [
     ("to_charge", "Prints to charge", "When a print couldn't be charged to a spool automatically."),
     ("humidity", "CFS too damp", "When a CFS unit's humidity goes above your limit."),
     ("reader", "NFC reader", "When the reader is unplugged or plugged back in."),
+    ("update", "Update available", "When a new version of Spoolhouse is out."),
 ]
 _SENT = set()
 
@@ -325,6 +327,31 @@ def _watch_loop():
 
 def start_watchers():
     threading.Thread(target=_watch_loop, daemon=True).start()
+
+
+def check_for_update(force=False):
+    """Ask GitHub about a newer version (once a day, or now) and announce it once."""
+    if force or updates.due():
+        updates.check(APP_VERSION)
+    latest = updates.should_notify(APP_VERSION)
+    if latest:
+        notify("update", f"{APP_NAME} {latest['version']} is available",
+               f"You have {APP_VERSION}. Open {APP_NAME} to see what's new and download it.")
+    return updates.status(APP_VERSION)
+
+
+def _update_loop():
+    time.sleep(60)  # let the app settle first
+    while True:
+        try:
+            check_for_update()
+        except Exception as e:
+            on_error(f"update check: {e}")
+        time.sleep(3600)  # check_for_update only asks GitHub once a day
+
+
+def start_update_checker():
+    threading.Thread(target=_update_loop, daemon=True).start()
 
 
 def print_finished(p, job):
@@ -766,6 +793,24 @@ def light_api(path, body):
         if SUPPORT_URL:
             webbrowser.open(SUPPORT_URL)
         return {"ok": bool(SUPPORT_URL)}
+    if path == "/api/update/status":
+        if "auto" in body:
+            updates.set_auto(bool(body["auto"]))
+        return updates.status(APP_VERSION)
+    if path == "/api/update/check":
+        if body.get("unskip"):  # checking by hand shows a skipped version again
+            updates.skip("")
+        return check_for_update(force=True)
+    if path == "/api/update/skip":
+        st = updates.status(APP_VERSION)
+        if st["latest"]:
+            updates.skip(st["latest"]["version"])
+        return updates.status(APP_VERSION)
+    if path == "/api/update/open":
+        # only ever the release page GitHub gave us (checked in updates.fetch_latest), never a URL from the page
+        st = updates.status(APP_VERSION)
+        webbrowser.open(st["latest"]["url"] if st["latest"] else updates.RELEASES_PAGE)
+        return {"ok": True}
     if path == "/api/status":
         # polled every few seconds by the page; only lists readers, never touches a tag
         try:

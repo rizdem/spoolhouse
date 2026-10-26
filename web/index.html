@@ -12,7 +12,7 @@
   <button data-view="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Settings</button>
   <button class="support" id="support" hidden>🍺 Buy me a beer</button>
   <div class="reader" id="reader"><span class="rdot"></span><div><div class="rt">Checking reader…</div><div class="rn"></div></div></div>
-  <div class="ver">Version __VERSION__</div>
+  <div class="ver">Version __VERSION__<button class="updlink" id="updLink" hidden>Update available</button></div>
 </nav>
 
 <section class="view" id="view-create"><div class="wrap cwrap">
@@ -159,7 +159,7 @@
   <label class="h">Running in the background</label>
   <p class="mute" id="appNotNative" style="margin:0" hidden>These options are only available in the Mac app.</p>
   <div class="setrow"><div><div class="stt">Keep tracking in the menu bar</div>
-    <div class="mute">Closing the window leaves the app running from a printer icon in the menu bar, so printer usage keeps coming off your stock. Use Quit (⌘Q) to stop it completely.</div></div>
+    <div class="mute">Closing the window leaves the app running from its icon in the menu bar, so printer usage keeps coming off your stock. Use Quit (⌘Q) to stop it completely.</div></div>
     <label class="switch"><input type="checkbox" id="setMenubar"><span></span></label></div>
   <div class="setrow"><div><div class="stt">Open at login</div>
     <div class="mute" id="loginNote">Starts quietly in the menu bar when you log in to your Mac, so tracking never stops.</div></div>
@@ -174,6 +174,15 @@
     <div style="display:flex;align-items:center;gap:8px"><input type="number" id="ntHum" min="20" max="90" step="1" style="width:84px"><span class="mute">%</span></div></div>
   <div class="setrow"><div><div class="stt">Test</div><div class="mute">macOS asks once whether __APP_NAME__ may send notifications. If nothing appears, check System Settings → Notifications.</div></div>
     <button class="btn" id="ntTest">Send a test notification</button></div>
+</div>
+
+<div class="card">
+  <label class="h">Updates</label>
+  <div class="setrow"><div><div class="stt">Check for updates automatically</div>
+    <div class="mute">Once a day, asks GitHub whether a newer version is out. Nothing about you or your data is sent.</div></div>
+    <label class="switch"><input type="checkbox" id="upAuto"><span></span></label></div>
+  <div class="setrow"><div style="min-width:0"><div class="stt">You have version __VERSION__</div><div class="mute" id="upStatus"></div></div>
+    <button class="btn" id="upCheck">Check now</button></div>
 </div>
 
 <div class="card">
@@ -206,6 +215,12 @@
     <button class="btn" id="exUsage">Export usage…</button></div>
 </div>
 </div></section>
+</div>
+
+<div class="updcard" id="updCard" role="status" hidden>
+  <div class="updtitle" id="updTitle"></div>
+  <div class="mute" id="updText"></div>
+  <div class="updbtns"><button class="btn sm pri" id="updGet">Download</button><button class="btn sm" id="updLater">Later</button><button class="btn sm" id="updSkip">Skip this version</button></div>
 </div>
 
 <div class="selbar" id="selbar" hidden>
@@ -319,6 +334,7 @@
 <script src="js/inventory.js?v=__VERSION__"></script>
 <script src="js/printers.js?v=__VERSION__"></script>
 <script src="js/settings.js?v=__VERSION__"></script>
+<script src="js/updates.js?v=__VERSION__"></script>
 <script src="js/printlog.js?v=__VERSION__"></script>
 <script src="js/printer-edit.js?v=__VERSION__"></script>
 <script src="js/main.js?v=__VERSION__"></script>

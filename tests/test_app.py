@@ -167,3 +167,15 @@ def test_same_creality_material_matches_whatever_the_slicer_colour():
     white = {"material": "06001", "color": "FFFFFF"}
     other_type = {"material": "01001", "color": "7A92AC"}
     assert cfs_gui.best_match(f, [other_type, white]) is white
+
+
+def test_update_status_reaches_the_page_after_a_failed_check(server):
+    # the page treats any reply with an "error" field as a failed request, so the last check's
+    # problem must travel under another name
+    import updates
+    updates.check(cfs_gui.APP_VERSION, fetch=lambda v: {"version": "99.0.0", "url": updates.RELEASES_PAGE, "published": ""})
+    def offline(v):
+        raise IOError("Couldn't reach GitHub.")
+    updates.check(cfs_gui.APP_VERSION, fetch=offline)
+    st = post(server, "/api/update/status")
+    assert "error" not in st and st["available"] and st["problem"] == "Couldn't reach GitHub."

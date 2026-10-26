@@ -3,6 +3,17 @@
 Versions follow [semantic versioning](https://semver.org): **major** for big or breaking
 changes, **minor** for new features, **patch** for bug fixes.
 
+## 2.1.0 - 2026-10-26
+
+### Added
+- **Update notice.** Once a day Spoolhouse asks GitHub whether a newer version is out. When there is one, you
+  get a Mac notification (once per version), a card in the corner of the window with Download, Later and
+  Skip this version, and an "Update available" link under the version number in the sidebar.
+- Settings → Updates: switch the daily check off, or Check now. Nothing about you or your data is sent: it's
+  the same request as opening the project's Releases page. Only published releases are offered, never drafts
+  or pre-releases.
+- "Update available" can be switched off like the other notifications.
+
 ## 2.0.3 - 2026-10-26
 
 ### Changed
