@@ -3,6 +3,14 @@
 Versions follow [semantic versioning](https://semver.org): **major** for big or breaking
 changes, **minor** for new features, **patch** for bug fixes.
 
+## 2.7.2 - 2026-10-26
+
+### Changed
+- Phone access on Windows: Settings says to allow Spoolhouse through the Windows firewall on private networks
+  (Windows asks the first time it's switched on).
+- The built app's self-test (run on every release build) now also starts Phone access, makes a pairing QR
+  code and loads the network-announcement library, so a release can't ship with Phone access broken.
+
 ## 2.7.1 - 2026-10-26
 
 ### Fixed

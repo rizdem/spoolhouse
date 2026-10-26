@@ -105,10 +105,18 @@ def self_test():
     req = urllib.request.Request(url + "/api/inv/list", data=b"{}", headers={"X-CFS": "1"})
     spools = json.load(urllib.request.urlopen(req, timeout=10))["spools"]
     ok = cfs_gui.APP_NAME in page and isinstance(spools, list)
+    # Phone access: its own encrypted server, the pairing QR code, and the network announcement library
+    from zeroconf import ServiceInfo, Zeroconf  # noqa: F401 - packaged with its native parts?
+    phone = phone_access.start(port=0, host="127.0.0.1", announce=False)
+    qr = phone_access.start_pairing()
+    phone_ok = len(phone["fingerprint"] or "") == 64 and qr["qr_svg"].startswith("<svg")
+    phone_access.stop()
+    ok = ok and phone_ok
     if hasattr(ui, "self_test"):
         ui.self_test()
     result = (f"self-test {'passed' if ok else 'FAILED'}: {cfs_gui.APP_NAME} {cfs_gui.APP_VERSION}, "
-              f"page {len(page)} bytes, {len(spools)} spools, data in {inv.DATA_DIR}")
+              f"page {len(page)} bytes, {len(spools)} spools, phone access {'ok' if phone_ok else 'FAILED'}, "
+              f"data in {inv.DATA_DIR}")
     core.log(result)  # a windowed Windows .exe has no console, so the build reads the log
     if sys.stdout:
         print(result, flush=True)
