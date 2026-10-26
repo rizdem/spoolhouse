@@ -48,7 +48,7 @@ Status: ✅ done · 🚧 in progress · 📋 planned
 | | Feature | What it does |
 |---|---|---|
 | ✅ | **Intel Mac version** | A separate download for Intel Macs (macOS 10.15+), built with `./build_app.sh intel`. |
-| 🚧 | **Windows app** | Built (2.4.0): system tray, Start with Windows, notifications, installer. Being tested on a real PC with an ACR122U. |
+| ✅ | **Windows app** | Windows 10/11 (2.4.0): system tray, Start with Windows, notifications, installer. Tested on a real PC with an ACR122U: all 33 checks passed. |
 | ✅ | **Automatic builds (GitHub Actions)** | A version tag builds the Apple Silicon, Intel and Windows downloads, self-tests them and drafts the release. |
 | 📋 | **Android companion app** | Use the phone's NFC to scan spools at the shelf or printer and send them over Wi-Fi to the Mac/Windows app, so there's one inventory. Needs a phone with an NXP NFC chip: many phones, including many Samsung models, can't read MIFARE Classic tags. |
 | 📋 | **Standalone Android app** | A full app with its own inventory. Larger job. |
