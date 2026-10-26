@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<title>__APP_NAME__</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="style.css?v=__VERSION__">
+</head><body><div class="app">
+<nav>
+  <div class="brand">__APP_NAME__</div>
+  <button data-view="inventory"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></svg>Inventory<span class="badge" id="badge" hidden></span></button>
+  <button data-view="printer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="9" rx="2"/><path d="M7 18v3h10v-3"/></svg>Printers<span class="badge" id="pbadge" hidden></span></button>
+  <button data-view="create"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Create</button>
+  <button data-view="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Settings</button>
+  <button class="support" id="support" hidden>🍺 Buy me a beer</button>
+  <div class="reader" id="reader"><span class="rdot"></span><div><div class="rt">Checking reader…</div><div class="rn"></div></div></div>
+  <div class="ver">Version __VERSION__</div>
+</nav>
+
+<section class="view" id="view-create"><div class="wrap cwrap">
+<h1>Create tags</h1>
+<p class="sub">Pick the filament, then write both tags for the spool.</p>
+<div class="cgrid">
+<div class="cmain">
+  <div class="card">
+    <label class="h" for="mat">Filament type</label>
+    <select id="mat" class="matsel"></select>
+    <p class="mute" style="margin:8px 0 0">For third-party filament, pick the matching <b>Generic</b> type.</p>
+  </div>
+
+  <div class="card">
+    <label class="h">Colour</label>
+    <div class="row">
+      <input type="color" id="picker" value="#ffffff">
+      <input type="text" id="hex" value="FFFFFF" maxlength="7" style="max-width:120px">
+      <span class="mute" id="cname"></span>
+    </div>
+    <div class="swatches" id="sw"></div>
+  </div>
+
+  <div class="card">
+    <label class="h">Spool weight</label>
+    <div class="seg" id="wt"></div>
+  </div>
+</div>
+
+<div class="cside">
+  <div class="card">
+    <div class="preview">
+      <div class="spool" id="spool"></div>
+      <div><div id="sumMat" style="font-weight:600"></div><div class="mute" id="sumRest"></div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="grid2 csettings">
+      <div><label class="h" for="printer">Printer</label>
+        <select id="printer"><option value="K2">K2 series (K2, K2 Pro, K2 Plus)</option><option value="K1">K1 series</option><option value="HI">Hi</option></select>
+        <p class="mute" style="margin:8px 0 0">The printer family the tags are written for.</p></div>
+      <div><label class="h" for="count">Tags per spool</label>
+        <select id="count"><option value="2">2 tags (standard CFS spool)</option><option value="1">1 tag</option></select>
+        <p class="mute" style="margin:8px 0 0">CFS spools carry a tag on each side.</p></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <button class="big" id="write">Write tags</button>
+    <div class="minor"><button id="read">Read a tag</button><button id="fmt">Wipe a tag</button></div>
+    <button class="cancel" hidden>Cancel</button>
+    <div id="status" class="status mute" style="margin-top:12px">Ready.</div>
+    <button class="btn pri" id="addInv" style="width:100%;margin-top:10px" hidden>Add this spool to inventory</button>
+  </div>
+</div>
+</div>
+</div></section>
+
+<section class="view" id="view-inventory" hidden><div class="wrap wide">
+<div class="head">
+  <div><h1>Inventory</h1><p class="sub" style="margin:0">Scan a spool to add it or update what's left.</p></div>
+  <div class="actions"><button class="btn" id="shopBtn">Shopping list<span class="badge" id="shopCount" hidden></span></button><button class="btn pri" id="scan">Scan spool</button></div>
+</div>
+<button class="cancel" hidden style="margin:0 0 10px">Cancel</button>
+<div id="istatus" class="status mute" style="margin-bottom:14px" hidden></div>
+<div class="statsnote" id="statsNote" hidden><span id="statsNoteText"></span><button class="fclear" id="statsClear">Show all</button></div>
+<div class="stats" id="stats">
+  <div class="stat"><div class="k">Spools in stock</div><div class="v" id="stCount">0</div><div class="s" id="stCountSub"></div></div>
+  <div class="stat"><div class="k">Filament left</div><div class="v" id="stLeft">0 kg</div><div class="s" id="stLeftSub"></div></div>
+  <div class="stat"><div class="k">Value left</div><div class="v" id="stValue">—</div><div class="s" id="stValueSub"></div></div>
+  <div class="stat"><div class="k">Total spent</div><div class="v" id="stSpent">—</div><div class="s" id="stSpentSub"></div></div>
+  <div class="stat"><div class="k">Filament used</div><div class="v" id="stUsed">0 kg</div><div class="s" id="stUsedSub"></div></div>
+  <div class="stat"><div class="k">Cost used</div><div class="v" id="stUsedCost">—</div><div class="s" id="stUsedCostSub"></div></div>
+</div>
+<div class="alerts" id="alerts" hidden>
+  <div class="alhead"><h3 id="alTitle">Running low</h3>
+    <label class="mute">Alert when a filament drops below<input type="number" id="lowG" min="0" step="50">g</label></div>
+  <div id="alertList"></div>
+</div>
+<div class="toolbar">
+  <input type="search" id="q" placeholder="Search type, brand, colour, shop, notes…  (⌘F)">
+  <div class="seg" id="mode"><button data-m="spools">Spools</button><button data-m="groups">By filament</button></div>
+  <label><input type="checkbox" id="hideEmpty" checked> Hide empty</label>
+  <button class="btn" id="selectBtn">Select</button>
+</div>
+<div class="filters" id="filters"></div>
+<div class="chiprow" id="chipRow" hidden><button class="filterchip" id="groupChip"></button></div>
+<div class="list" id="list"></div>
+<div style="text-align:center;margin-top:12px"><button class="link" id="trashLink" hidden></button></div>
+</div></section>
+
+<section class="view" id="view-printer" hidden><div class="wrap xwide">
+<div id="pList">
+  <div class="head">
+    <div><h1>Printers</h1><p class="sub" style="margin:0">Add your Creality printers to see what's loaded and track filament use.</p></div>
+    <div class="actions"><button class="btn pri" id="pAdd">+ Add printer</button></div>
+  </div>
+  <div class="pcards" id="pCards"></div>
+</div>
+<div id="pDetail" hidden>
+  <button class="backlink" id="pBack">‹ All printers</button>
+  <div class="head">
+    <div><h1 id="pdName">Printer</h1><p class="sub" style="margin:0" id="pdMeta"></p></div>
+    <div class="actions"><button class="btn" id="pEdit">Edit</button><button class="btn" id="pRefresh">Refresh</button></div>
+  </div>
+  <div class="card"><div class="pstatus" id="pStatus" style="margin:0">Connecting…</div></div>
+  <div id="pSlots"></div>
+  <div class="card" id="pFit">
+    <div class="fithead"><label class="h" style="margin:0" id="fitTitle">Will it fit?</label>
+      <div class="fitpick"><select id="fitFile"><option value="">Check a print file on the printer…</option></select></div></div>
+    <div class="mute" id="fitNote" style="margin-top:8px">Pick a file you've sent to the printer to check your loaded spools have enough of each colour before you start it.</div>
+    <div id="fitRows"></div>
+    <div id="fitFileBox" hidden>
+      <div class="fitsub" id="fitFileTitle"></div>
+      <div class="mute" id="fitFileNote"></div>
+      <div id="fitFileRows"></div>
+    </div>
+  </div>
+  <div class="card coll" id="pUsageCard" data-key="usage" hidden>
+    <button class="collhead" type="button" aria-expanded="false"><svg class="chev" viewBox="0 0 12 8"><path d="M1 1.5l5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="ct">Recent usage</span><span class="collsum" id="pUsageSum"></span></button>
+    <div class="collbody"><div class="scroll"><table class="tbl" id="pUsage"></table></div></div>
+  </div>
+  <div class="card coll" id="pLogCard" data-key="log" hidden>
+    <button class="collhead" type="button" aria-expanded="false"><svg class="chev" viewBox="0 0 12 8"><path d="M1 1.5l5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="ct">Print log</span><span class="collsum" id="pLogSum"></span></button>
+    <div class="collbody">
+    <div class="logbar">
+      <div class="seg" id="logMode"><button data-m="all">All prints</button><button data-m="needs">Needs attention<span class="cnt" id="logNeeds" hidden></span></button></div>
+      <span class="mute" id="logMonth" style="font-size:13px"></span>
+      <span class="sp" style="flex:1"></span><button class="fclear" id="pLogRefresh">Refresh</button></div>
+    <div class="scroll"><table class="tbl" id="pLog"></table></div>
+    <div style="text-align:center;margin-top:10px"><button class="btn sm" id="pLogMore" hidden>Load older prints</button></div>
+    <p class="mute" style="margin:10px 0 0">Grams are estimated from filament length (1.75 mm) and the material's density. "From" shows which spools each print was charged to. "Needs attention" lists prints not yet charged to a spool: use Charge to pick the spool(s), or Skip if your spool amounts already include it. Edit fixes any print's charges.</p>
+    </div>
+  </div>
+</div>
+</div></section>
+
+<section class="view" id="view-settings" hidden><div class="wrap">
+<h1>Settings</h1>
+<p class="sub">How the app runs, and keeping your data safe.</p>
+
+<div class="card">
+  <label class="h">Running in the background</label>
+  <p class="mute" id="appNotNative" style="margin:0" hidden>These options are only available in the Mac app.</p>
+  <div class="setrow"><div><div class="stt">Keep tracking in the menu bar</div>
+    <div class="mute">Closing the window leaves the app running from a printer icon in the menu bar, so printer usage keeps coming off your stock. Use Quit (⌘Q) to stop it completely.</div></div>
+    <label class="switch"><input type="checkbox" id="setMenubar"><span></span></label></div>
+  <div class="setrow"><div><div class="stt">Open at login</div>
+    <div class="mute" id="loginNote">Starts quietly in the menu bar when you log in to your Mac, so tracking never stops.</div></div>
+    <label class="switch"><input type="checkbox" id="setLogin"><span></span></label></div>
+</div>
+
+<div class="card">
+  <label class="h">Notifications and alerts</label>
+  <p class="mute" id="ntNotNative" style="margin:0" hidden>Notifications are available in the Mac app.</p>
+  <div id="ntKinds"></div>
+  <div class="setrow"><div><div class="stt">CFS humidity limit</div><div class="mute">Warn when a CFS unit's humidity goes above this. Most filament prints best kept below 40–50%.</div></div>
+    <div style="display:flex;align-items:center;gap:8px"><input type="number" id="ntHum" min="20" max="90" step="1" style="width:84px"><span class="mute">%</span></div></div>
+  <div class="setrow"><div><div class="stt">Test</div><div class="mute">macOS asks once whether __APP_NAME__ may send notifications. If nothing appears, check System Settings → Notifications.</div></div>
+    <button class="btn" id="ntTest">Send a test notification</button></div>
+</div>
+
+<div class="card">
+  <label class="h">Automatic backups</label>
+  <p class="mute" style="margin:0 0 6px">Back up to a folder on a schedule: a NAS share, an external drive or a cloud-synced folder. For a NAS, connect to the share in Finder first (Go → Connect to Server, e.g. smb://nas.local/backups) and tick "Remember this password". Backups pause while it isn't connected and catch up when it is.</p>
+  <div class="setrow"><div style="min-width:0"><div class="stt">Folder</div><div class="mute" id="bkDir" style="word-break:break-all">Not set</div></div>
+    <button class="btn" id="bkChoose">Choose folder…</button></div>
+  <div class="setrow"><div><div class="stt">How often</div></div>
+    <div style="width:220px"><select id="bkFreq"><option value="off">Off</option><option value="daily">Every day</option><option value="weekly">Every week</option></select></div></div>
+  <div class="setrow"><div><div class="stt">Keep</div><div class="mute">Older backups in that folder are removed. Other files are never touched.</div></div>
+    <div style="width:220px"><select id="bkKeep"><option value="7">Last 7 backups</option><option value="14">Last 14 backups</option><option value="30">Last 30 backups</option><option value="90">Last 90 backups</option></select></div></div>
+  <div class="setrow"><div style="min-width:0"><div class="stt">Status</div><div class="mute" id="bkStatus"></div></div>
+    <button class="btn" id="bkRunNow">Back up now</button></div>
+</div>
+
+<div class="card">
+  <label class="h">Backup and restore</label>
+  <div class="setrow"><div><div class="stt">Save a backup</div><div class="mute">A copy of everything (spools, printers, usage and settings) in one file.</div></div>
+    <button class="btn" id="bkSave">Save backup…</button></div>
+  <div class="setrow"><div><div class="stt">Restore from a backup</div><div class="mute">Replaces your current data. A copy of what you have now is saved first, just in case.</div></div>
+    <button class="btn" id="bkRestore">Restore…</button></div>
+  <div class="setrow"><div style="min-width:0"><div class="stt">Where your data lives</div><div class="mute" id="bkDb" style="word-break:break-all"></div></div></div>
+</div>
+
+<div class="card">
+  <label class="h">Export to a spreadsheet</label>
+  <div class="setrow"><div><div class="stt">Spools</div><div class="mute">Every spool with its type, colour, amounts, cost and shop (CSV, opens in Excel or Numbers).</div></div>
+    <button class="btn" id="exSpools">Export spools…</button></div>
+  <div class="setrow"><div><div class="stt">Print usage</div><div class="mute">Every charge from your printers: date, print, spool, grams and cost.</div></div>
+    <button class="btn" id="exUsage">Export usage…</button></div>
+</div>
+</div></section>
+</div>
+
+<div class="selbar" id="selbar" hidden>
+  <span class="n" id="selCount">0 selected</span>
+  <button class="btn" id="selAll">Select all</button>
+  <button class="btn del" id="selDelete" disabled>Delete</button>
+  <button class="btn" id="selDone">Done</button>
+</div>
+
+
+
+<div class="overlay" id="trashSheet" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="trTitle" style="max-width:600px">
+    <h2 id="trTitle">Recently deleted</h2>
+    <div class="mute" id="trSub">Deleted spools stay here for 30 days, then are removed for good. Their print history is kept either way.</div>
+    <div id="trRows"></div>
+    <div class="foot"><button class="btn danger" id="trEmpty">Delete all now</button><span class="sp"></span>
+      <button class="btn" id="trClose">Close</button><button class="btn pri" id="trRestoreAll">Restore all</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="shopSheet" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="shTitle" style="max-width:640px">
+    <h2 id="shTitle">Shopping list</h2>
+    <div class="mute">Filaments running low or recently used up. Set how many to buy, then copy or email the list.</div>
+    <div id="shRows"></div>
+    <div class="shadd"><div style="flex:1;min-width:0"><select id="shAdd"><option value="">Add another filament…</option></select></div></div>
+    <button class="link" id="shShowHidden" style="margin-top:10px" hidden></button>
+    <div class="shtotal" id="shTotal"></div>
+    <div class="foot"><button class="btn" id="shEmail">Email list</button><span class="sp"></span>
+      <button class="btn" id="shClose">Close</button><button class="btn pri" id="shCopy">Copy list</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="cEditor" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="ceTitle" style="max-width:560px">
+    <h2 id="ceTitle">Charge print</h2>
+    <div class="mute" id="ceMeta"></div>
+    <p class="mute" style="margin:12px 0 0">Pick the spool this print used. For a multi-colour print, add a row per colour and enter the grams from your slicer.</p>
+    <div class="mute" id="ceFrom" style="margin-top:8px;color:var(--acc)"></div>
+    <div id="ceRows"></div>
+    <button class="link" id="ceAdd" style="margin-top:10px">+ Add another spool</button>
+    <div class="csum" id="ceSum"></div>
+    <p class="mute" style="margin:10px 0 0">Only charge prints your spools' remaining amounts don't already include. Saving replaces any earlier charges for this print, and those spools get their grams back first.</p>
+    <div class="foot"><span class="sp"></span><button class="btn" id="ceCancel">Cancel</button><button class="btn pri" id="ceSave">Save</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="pEditor" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="peTitle" style="max-width:460px">
+    <h2 id="peTitle">Add printer</h2>
+    <div class="mute">The app only reads from the printer. It never sends it commands.</div>
+    <div class="field"><label class="h" for="peName">Name</label><input type="text" id="peName" maxlength="60" placeholder="e.g. Richard's printer"></div>
+    <div class="field"><label class="h" for="peModel">Model</label><select id="peModel"></select></div>
+    <div class="field"><label class="h" for="peHost">IP address</label><input type="text" id="peHost" placeholder="e.g. 192.168.1.50" autocomplete="off" spellcheck="false">
+      <div class="mute" style="margin-top:6px">Find it on the printer's touchscreen, under the network settings.</div>
+      <button class="btn" id="peTest" style="margin-top:10px">Test connection</button>
+      <div class="ptest" id="peTestOut"></div></div>
+    <div class="foot"><button class="btn danger" id="peDelete">Delete printer</button><span class="sp"></span>
+      <button class="btn" id="peCancel">Cancel</button><button class="btn pri" id="peSave">Save</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="editor" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="edTitle">
+    <h2 id="edTitle">Spool</h2>
+    <div class="mute" id="edSub"></div>
+    <div id="eScanWrap" style="margin-top:12px">
+      <button class="btn pri" id="eScan" style="width:100%">Scan tag to link</button>
+      <div class="mute" id="eScanMsg" style="margin-top:6px">Or fill it in by hand below.</div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label class="h" for="eMat">Filament type</label><select id="eMat" class="matsel"></select></div>
+      <div class="field"><label class="h" for="eBrand">Brand</label><input type="text" id="eBrand" list="brands" placeholder="e.g. Polymaker, eSun">
+        <datalist id="brands"></datalist></div>
+    </div>
+    <div class="field"><label class="h">Colour</label>
+      <div class="row"><input type="color" id="ePicker"><input type="text" id="eHex" maxlength="7" style="max-width:120px"></div></div>
+    <div id="eStockNote"></div>
+    <div class="grid2">
+      <div class="field"><label class="h" for="eTotal">Spool size (g)</label><input type="number" id="eTotal" min="0" step="1">
+        <div class="chips" id="eSizes"></div></div>
+      <div class="field"><label class="h" for="eLeft">Remaining (g)</label><input type="number" id="eLeft" min="0" step="0.1">
+        <div class="chips"><button data-f="1">Full</button><button data-f=".75">¾</button><button data-f=".5">½</button><button data-f=".25">¼</button><button data-f="0">Empty</button></div></div>
+    </div>
+    <input type="range" id="eRange" min="0" max="1000" step="1" aria-label="Remaining">
+    <div class="weigh">
+      <label class="h" style="margin-bottom:6px">Weigh it</label>
+      <div class="grid2">
+        <div><div class="lbl">Scale reading (g)</div><input type="number" id="eGross" min="0" step="1" placeholder="e.g. 812"></div>
+        <div><div class="lbl">Empty spool (g)</div><input type="number" id="eTare" min="0" step="1"></div>
+      </div>
+      <div class="mute" id="eWeighOut" style="margin-top:8px"></div>
+      <button class="link" id="eTareDefault" style="margin-top:6px">Use this empty-spool weight for new spools</button>
+    </div>
+    <div class="grid2">
+      <div class="field"><label class="h" for="eCost">Cost</label><input type="number" id="eCost" min="0" step="0.01" placeholder="0.00"></div>
+      <div class="field"><label class="h" for="eDate">Purchased</label><input type="date" id="eDate"></div>
+    </div>
+    <div class="field"><label class="h" for="eSource">Where from</label><input type="text" id="eSource" list="sources" placeholder="e.g. Amazon, Creality store">
+      <datalist id="sources"></datalist></div>
+    <div class="field"><label class="h" for="eNotes">Notes</label><textarea id="eNotes" placeholder="Optional"></textarea></div>
+    <div class="foot"><button class="btn danger" id="eDelete">Delete</button><span class="sp"></span>
+      <button class="btn" id="eClose">Close</button><button class="btn pri" id="eSave">Save</button></div>
+  </div>
+</div>
+
+<script>window.CFS_CONFIG=__CONFIG__;</script>
+<script src="js/core.js?v=__VERSION__"></script>
+<script src="js/create.js?v=__VERSION__"></script>
+<script src="js/inventory.js?v=__VERSION__"></script>
+<script src="js/printers.js?v=__VERSION__"></script>
+<script src="js/settings.js?v=__VERSION__"></script>
+<script src="js/printlog.js?v=__VERSION__"></script>
+<script src="js/printer-edit.js?v=__VERSION__"></script>
+<script src="js/main.js?v=__VERSION__"></script>
+</body></html>

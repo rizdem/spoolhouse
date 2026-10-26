@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+*.pyc
+build_tmp/
+dist/
+*.spec
+.DS_Store
+.pytest_cache/
+branding/icons/
