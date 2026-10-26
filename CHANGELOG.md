@@ -3,6 +3,14 @@
 Versions follow [semantic versioning](https://semver.org): **major** for big or breaking
 changes, **minor** for new features, **patch** for bug fixes.
 
+## 2.7.1 - 2026-10-26
+
+### Fixed
+- **Settings → Phone access didn't work**: the switch showed Off and there was no Pair a phone button, because
+  one of the page's scripts reused a name another already had, so the browser skipped it. A test now checks
+  the scripts never clash.
+- The window's page now has its icon (no more missing favicon request).
+
 ## 2.7.0 - 2026-10-26
 
 ### Added
