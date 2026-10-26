@@ -412,3 +412,10 @@ nav .verbtn:hover{background:none;text-decoration:underline}
 .abbmc{margin:10px 0 2px;padding:0;border:0;background:none;cursor:pointer;width:200px}
 .abbmc img{max-width:200px}
 .sheet.about .foot{width:100%}
+
+/* Phone access pairing */
+.sheet.pairsheet{max-width:420px;text-align:center}
+.pairsheet .qr{display:grid;place-items:center;margin:12px auto;background:#fff;border-radius:14px;padding:10px;width:max-content}
+.pairsheet .qr svg{display:block;width:260px;height:auto}
+.pairmanual{font-size:13px;max-width:36ch;margin:6px auto 0;text-wrap:balance}
+.pairdone{font-size:17px;font-weight:600;color:var(--ok);margin:18px 0}

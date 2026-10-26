@@ -4,6 +4,7 @@ async function loadSettings(){
   // the other sections load regardless: only the menu bar/tray options need the desktop app
   loadBackups();
   loadNotify();
+  if(typeof loadPhone==="function") loadPhone();
   try{
     const s=await call("/api/app/settings");
     $("appNotNative").hidden=s.native; ["setMenubar","setLogin"].forEach(id=>$(id).disabled=!s.native);

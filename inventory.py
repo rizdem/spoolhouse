@@ -14,6 +14,7 @@ import contextlib
 import csv
 import datetime
 import glob
+import hashlib
 import io
 import json
 import os
@@ -164,6 +165,9 @@ def _connect():
                        brand = (SELECT brand FROM spools WHERE spools.id = usage.spool_id)
                        WHERE spool_id IS NOT NULL""")
     con.execute("CREATE TABLE IF NOT EXISTS job_flags (job TEXT PRIMARY KEY, skipped INTEGER DEFAULT 0, at REAL)")
+    # phones paired with Phone access: only a hash of each phone's token is kept
+    con.execute("""CREATE TABLE IF NOT EXISTS phones (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT,
+                   token_hash TEXT UNIQUE, created REAL, last_seen REAL)""")
     if "cost_g" not in {r[1] for r in con.execute("PRAGMA table_info(usage)")}:
         # the spool's price per gram when the filament was used, so a print's cost never changes later
         con.execute("ALTER TABLE usage ADD COLUMN cost_g REAL")
@@ -376,6 +380,42 @@ def get_pref(key, default=""):
 def set_pref(key, value):
     with _db() as con:
         con.execute("INSERT OR REPLACE INTO prefs (key, value) VALUES (?, ?)", (key, str(value)))
+
+
+# ---------------------------------------------------------------- paired phones
+def _token_hash(token):
+    return hashlib.sha256(token.encode()).hexdigest()
+
+
+def add_phone(name):
+    """Pair a phone: returns its token (shown to the phone once, never stored in the clear)."""
+    token = secrets.token_urlsafe(32)
+    with _db() as con:
+        con.execute("INSERT INTO phones (name, token_hash, created, last_seen) VALUES (?, ?, ?, ?)",
+                    ((name or "Phone").strip()[:60] or "Phone", _token_hash(token), time.time(), time.time()))
+    return token
+
+
+def phone_for_token(token):
+    """The paired phone with this token (and note that it was seen), or None."""
+    if not token:
+        return None
+    with _db() as con:
+        r = con.execute("SELECT * FROM phones WHERE token_hash = ?", (_token_hash(token),)).fetchone()
+        if r:
+            con.execute("UPDATE phones SET last_seen = ? WHERE id = ?", (time.time(), r["id"]))
+    return dict(r) if r else None
+
+
+def list_phones():
+    with _db() as con:
+        return [{k: r[k] for k in ("id", "name", "created", "last_seen")}
+                for r in con.execute("SELECT * FROM phones ORDER BY created")]
+
+
+def remove_phone(phone_id):
+    with _db() as con:
+        con.execute("DELETE FROM phones WHERE id = ?", (int(phone_id),))
 
 
 # ---------------------------------------------------------------- printer slots

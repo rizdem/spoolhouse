@@ -3,6 +3,21 @@
 Versions follow [semantic versioning](https://semver.org): **major** for big or breaking
 changes, **minor** for new features, **patch** for bug fixes.
 
+## 2.5.0 - 2026-10-26
+
+### Added
+- **Phone access** (Settings): lets the Spoolhouse phone app see your inventory and printers over your home
+  Wi-Fi. Off until you switch it on. **Pair a phone** shows a QR code to scan; paired phones are listed with
+  when they were last used, and can be removed at any time.
+  - The connection is encrypted with a certificate made on your computer. The QR code carries its
+    fingerprint and the phone refuses any other, so nothing else on the network can listen in or pretend
+    to be your computer.
+  - Only paired phones get in, each with its own key (only a hash of it is stored). Pairing codes work once,
+    for 10 minutes, and five wrong tries cancel them.
+  - Phones can only use the inventory, printers and shopping list: never the USB reader, file dialogs,
+    backups, restore or app settings.
+  - Your computer announces itself on the network, so the phone finds it again if its address changes.
+
 ## 2.4.0 - 2026-10-26
 
 ### Added

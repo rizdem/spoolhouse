@@ -28,7 +28,7 @@ import printer
 
 PORT = 8765
 APP_NAME = "Spoolhouse"
-APP_VERSION = "2.4.0"
+APP_VERSION = "2.5.0"
 # Your Buy Me a Coffee (or Ko-fi / GitHub Sponsors) page. Leave empty to hide the Support button.
 SUPPORT_URL = "https://buymeacoffee.com/rizdem"
 # the only pages the About box can open (the page asks by name, never by URL)
@@ -806,6 +806,9 @@ def light_api(path, body):
         if SUPPORT_URL:
             webbrowser.open(SUPPORT_URL)
         return {"ok": bool(SUPPORT_URL)}
+    if path.startswith("/api/phone/"):
+        import phone_access  # here, not at the top: it imports this module
+        return phone_access.api(path, body)
     if path == "/api/app/show":
         # a second copy of the app being opened asks this one to come forward
         if "show" in NATIVE:

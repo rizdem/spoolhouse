@@ -1,0 +1,108 @@
+"""Phone access: pairing, the pinned certificate, and what a paired phone may (and may not) do."""
+import hashlib
+import json
+import socket
+import ssl
+import urllib.parse
+
+import pytest
+
+import inventory as inv
+import phone_access as pa
+
+
+@pytest.fixture
+def server():
+    pa.start(port=0, host="127.0.0.1", announce=False)
+    yield pa.STATE["server"].server_address[1]
+    pa.stop()
+
+
+def call(port, path, body=None, token=None, fingerprint=None):
+    """Like the phone: HTTPS to the computer, trusting only the certificate in the QR code."""
+    ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+    ctx.check_hostname = False
+    ctx.verify_mode = ssl.CERT_NONE  # checked by fingerprint below, as the phone does
+    with socket.create_connection(("127.0.0.1", port), timeout=10) as raw, ctx.wrap_socket(raw) as s:
+        der = s.getpeercert(binary_form=True)
+        if fingerprint and hashlib.sha256(der).hexdigest().upper() != fingerprint:
+            raise ssl.SSLError("certificate doesn't match the pairing QR code")
+        data = json.dumps(body or {}).encode()
+        head = (f"POST {path} HTTP/1.1\r\nHost: x\r\nContent-Type: application/json\r\n"
+                f"Content-Length: {len(data)}\r\n" + (f"Authorization: Bearer {token}\r\n" if token else "")
+                + "Connection: close\r\n\r\n")
+        s.sendall(head.encode() + data)
+        reply = b""
+        while chunk := s.recv(65536):
+            reply += chunk
+    status = int(reply.split(b" ", 2)[1])
+    return status, json.loads(reply.split(b"\r\n\r\n", 1)[1])
+
+
+def pair(port, name="Test phone"):
+    qr = pa.start_pairing()
+    link = urllib.parse.parse_qs(urllib.parse.urlparse(qr["link"]).query)
+    status, reply = call(port, "/api/phone/pair", {"code": link["c"][0], "name": name}, fingerprint=link["f"][0])
+    assert status == 200
+    return reply["token"], link
+
+
+def test_off_by_default():
+    assert not pa.enabled() and pa.STATE["server"] is None
+
+
+def test_pairing_link_has_everything_the_phone_needs(server):
+    qr = pa.start_pairing()
+    q = urllib.parse.parse_qs(urllib.parse.urlparse(qr["link"]).query)
+    assert qr["link"].startswith("spoolhouse://pair?")
+    assert len(q["c"][0]) == 6 and len(q["f"][0]) == 64 and q["p"] == [str(pa.PORT)]
+    assert "127.0.0.1" not in q["h"][0].split(",") or q["h"] == ["127.0.0.1"]
+    assert qr["qr_svg"].startswith("<svg")
+
+
+def test_pair_then_use_the_inventory(server, spool):
+    s = spool(serial="590267")
+    token, link = pair(server)
+    status, reply = call(server, "/api/inv/list", token=token, fingerprint=link["f"][0])
+    assert status == 200 and [x["serial"] for x in reply["spools"]] == ["590267"]
+    status, reply = call(server, "/api/inv/find", {"serial": "590267"}, token=token)
+    assert reply["spool"]["id"] == s["id"]
+    status, reply = call(server, "/api/phone/hello", token=token)
+    assert reply["app"] == "Spoolhouse" and reply["phone"] == "Test phone"
+    assert [p["name"] for p in inv.list_phones()] == ["Test phone"]
+
+
+def test_codes_work_once_and_wrong_codes_are_refused(server):
+    qr = pa.start_pairing()
+    assert call(server, "/api/phone/pair", {"code": "000000" if qr["code"] != "000000" else "111111"})[0] == 403
+    assert call(server, "/api/phone/pair", {"code": qr["code"], "name": "A"})[0] == 200
+    assert call(server, "/api/phone/pair", {"code": qr["code"], "name": "B"})[0] == 403  # already used
+
+
+def test_too_many_wrong_codes_cancels_pairing(server):
+    qr = pa.start_pairing()
+    for _ in range(pa.PAIR_TRIES):
+        call(server, "/api/phone/pair", {"code": "x"})
+    assert call(server, "/api/phone/pair", {"code": qr["code"]})[0] == 403
+
+
+def test_unpaired_or_removed_phones_get_nothing(server):
+    assert call(server, "/api/inv/list")[0] == 401
+    assert call(server, "/api/inv/list", token="made-up")[0] == 401
+    token, _ = pair(server)
+    inv.remove_phone(inv.list_phones()[0]["id"])
+    assert call(server, "/api/inv/list", token=token)[0] == 401
+
+
+def test_phones_cannot_reach_the_reader_settings_or_backups(server):
+    token, _ = pair(server)
+    for path in ("/api/read", "/api/write", "/api/format", "/api/app/settings", "/api/backup/restore",
+                 "/api/backup/save", "/api/export", "/api/phone/enable", "/api/phone/pair_start", "/api/open"):
+        assert call(server, path, token=token)[0] == 403, path
+
+
+def test_the_certificate_stays_the_same(server):
+    fp = pa.status()["fingerprint"]
+    pa.stop()
+    pa.start(port=0, host="127.0.0.1", announce=False)
+    assert pa.status()["fingerprint"] == fp  # phones paired earlier keep trusting it

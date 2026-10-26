@@ -50,6 +50,10 @@ filament system (K2 / K1 / Hi) with a cheap USB NFC reader. No account, no cloud
 - Closing the window keeps the app in the menu bar (Mac) or system tray (Windows), so printer usage is still tracked. Optionally starts when you log in.
 - Tells you when a new version is out (checks GitHub once a day; can be switched off).
 
+**Phone app** (Android)
+- Pair the Spoolhouse phone app in Settings → Phone access to see your inventory and printers on your phone,
+  over your home Wi-Fi (encrypted; only paired phones can connect).
+
 **Your data**
 - Cost per print and a monthly total.
 - Automatic backups to a NAS or any folder, one-click backup and restore, and CSV export.
