@@ -133,3 +133,42 @@ def test_find_mentions_a_spool_in_recently_deleted(server, spool):
     assert reply["spool"] is None and reply["deleted_spool"]["id"] == s["id"]
     assert call(server, "/api/inv/restore", {"ids": [s["id"]]}, token=token)[0] == 200
     assert call(server, "/api/inv/find", {"serial": "777777"}, token=token)[1]["spool"]["id"] == s["id"]
+
+
+def test_phone_picks_up_alerts_since_it_last_looked(server, monkeypatch):
+    import cfs_gui
+    token, _ = pair(server)
+    first = call(server, "/api/phone/events", {}, token=token)[1]
+    assert first["events"] == [] and "printing" in first   # a first look only learns where the log is up to
+    cfs_gui.notify("print_done", "K2 Pro: print finished", "Bucket · 136 g of filament, about £1.65")
+    cfs_gui.notify("low_stock", "Running low", "Creality Hyper PLA #FFFFFF: 180 g left.")
+    cfs_gui.notify("reader", "NFC reader unplugged", "")   # desktop-only alerts aren't passed on
+    got = call(server, "/api/phone/events", {"since": first["latest"]}, token=token)[1]
+    assert [e["kind"] for e in got["events"]] == ["print_done", "low_stock"]
+    assert got["events"][0]["title"] == "K2 Pro: print finished"
+    again = call(server, "/api/phone/events", {"since": got["latest"]}, token=token)[1]
+    assert again["events"] == []
+
+
+def test_phone_alerts_are_logged_even_when_the_desktop_has_them_off():
+    import cfs_gui
+    inv.set_pref("notify_humidity", "0")
+    cfs_gui.notify("humidity", "K2 Pro: CFS 1 is damp", "53% humidity")
+    events, _ = inv.events_since(-1)
+    assert [e["kind"] for e in events] == ["humidity"]
+
+
+def test_a_weighing_made_offline_allows_for_printing_since(server, spool):
+    import time as _t
+    s = spool(serial="456095", remaining_g=900)
+    token, _ = pair(server)
+    weighed_at = _t.time() - 3600      # weighed an hour ago, away from home: 640 g
+    with inv._db() as con:              # since then the printer used 25 g of it, and 10 g before the weighing
+        con.execute("INSERT INTO usage (spool_id, slot_key, mm, grams, at, job) VALUES (?, '', 0, 25, ?, 'j1')",
+                    (s["id"], _t.time() - 600))
+        con.execute("INSERT INTO usage (spool_id, slot_key, mm, grams, at, job) VALUES (?, '', 0, 10, ?, 'j0')",
+                    (s["id"], weighed_at - 600))
+    reply = call(server, "/api/inv/save", {"id": s["id"], "remaining_g": 640, "measured_at": weighed_at}, token=token)[1]
+    assert reply["spool"]["remaining_g"] == 615
+    # without a time it's taken as it is (weighed just now)
+    assert call(server, "/api/inv/save", {"id": s["id"], "remaining_g": 640}, token=token)[1]["spool"]["remaining_g"] == 640

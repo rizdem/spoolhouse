@@ -165,6 +165,9 @@ def _connect():
                        brand = (SELECT brand FROM spools WHERE spools.id = usage.spool_id)
                        WHERE spool_id IS NOT NULL""")
     con.execute("CREATE TABLE IF NOT EXISTS job_flags (job TEXT PRIMARY KEY, skipped INTEGER DEFAULT 0, at REAL)")
+    # alerts for paired phones to pick up (print finished, running low, ...), the last week only
+    con.execute("""CREATE TABLE IF NOT EXISTS events (id INTEGER PRIMARY KEY AUTOINCREMENT, at REAL,
+                   kind TEXT, title TEXT, body TEXT)""")
     # phones paired with Phone access: only a hash of each phone's token is kept
     con.execute("""CREATE TABLE IF NOT EXISTS phones (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT,
                    token_hash TEXT UNIQUE, created REAL, last_seen REAL)""")
@@ -380,6 +383,29 @@ def get_pref(key, default=""):
 def set_pref(key, value):
     with _db() as con:
         con.execute("INSERT OR REPLACE INTO prefs (key, value) VALUES (?, ?)", (key, str(value)))
+
+
+# ---------------------------------------------------------------- events for phones
+EVENT_DAYS = 7
+
+
+def log_event(kind, title, body):
+    now = time.time()
+    with _db() as con:
+        con.execute("INSERT INTO events (at, kind, title, body) VALUES (?, ?, ?, ?)", (now, kind, title, body))
+        con.execute("DELETE FROM events WHERE at < ? OR id <= (SELECT MAX(id) - 200 FROM events)",
+                    (now - EVENT_DAYS * 86400,))
+
+
+def events_since(after_id):
+    """Events after `after_id`, oldest first, and the newest id. With no `after_id` (a phone's first look),
+    just the newest id, so a newly paired phone isn't flooded with old alerts."""
+    with _db() as con:
+        latest = con.execute("SELECT COALESCE(MAX(id), 0) FROM events").fetchone()[0]
+        if after_id is None:
+            return [], latest
+        rows = con.execute("SELECT * FROM events WHERE id > ? ORDER BY id", (int(after_id),)).fetchall()
+    return [dict(r) for r in rows], latest
 
 
 # ---------------------------------------------------------------- paired phones

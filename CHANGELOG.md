@@ -3,6 +3,15 @@
 Versions follow [semantic versioning](https://semver.org): **major** for big or breaking
 changes, **minor** for new features, **patch** for bug fixes.
 
+## 2.7.0 - 2026-10-26
+
+### Added
+- **Alerts on your phone**: print finished, filament that may run out, running low, prints to charge and a
+  CFS that's too damp are kept for a week for paired phones to pick up (whatever this computer's own
+  notification settings are; the phone has its own).
+- **Changes made on the phone while away** sync when it's back. A spool weighed away from home counts as
+  right at the time it was weighed: anything printed from it since is taken off when it syncs.
+
 ## 2.6.0 - 2026-10-26
 
 ### Added
