@@ -3,6 +3,12 @@
 Versions follow [semantic versioning](https://semver.org): **major** for big or breaking
 changes, **minor** for new features, **patch** for bug fixes.
 
+## 2.0.3 - 2026-10-26
+
+### Changed
+- The sidebar shows the One Strand mark with "Spoolhouse" in the icon's orange, matching the app icon and the
+  README banner (a deeper orange in light mode so it stays easy to read).
+
 ## 2.0.2 - 2026-10-26
 
 ### Changed

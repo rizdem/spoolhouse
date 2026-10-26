@@ -6,7 +6,15 @@
 body{margin:0;font:15px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}
 .app{display:grid;grid-template-columns:200px 1fr;height:100%}
 nav{background:var(--side);border-right:1px solid var(--line);padding:18px 10px;display:flex;flex-direction:column;gap:4px}
-nav .brand{font-weight:700;font-size:15px;padding:0 10px 14px}
+/* the One Strand mark and the name in the icon's orange; deeper in light mode so it stays readable */
+:root{--brand0:#E8590C;--brand1:#F08C00}
+@media (prefers-color-scheme:dark){:root{--brand0:#FF7A3D;--brand1:#FFC24B}}
+nav .brand{display:flex;align-items:center;gap:8px;padding:0 8px 14px}
+nav .brand .mark{width:26px;height:26px;flex:none}
+nav .brand .mark path{fill:none;stroke:url(#markGrad);stroke-width:46;stroke-linecap:round;stroke-linejoin:round}
+nav .brand .g0{stop-color:var(--brand0)} nav .brand .g1{stop-color:var(--brand1)}
+nav .brand .word{font:800 19px/1 ui-rounded,"SF Pro Rounded",system-ui,sans-serif;letter-spacing:-.2px;
+  background:linear-gradient(100deg,var(--brand0),var(--brand1));-webkit-background-clip:text;background-clip:text;color:transparent}
 nav button{display:flex;align-items:center;gap:10px;width:100%;padding:9px 10px;border:0;border-radius:8px;background:transparent;color:var(--ink);font:inherit;text-align:left;cursor:pointer}
 nav button:hover{background:rgba(127,127,127,.12)}
 nav button.on{background:var(--acc);color:#fff}
