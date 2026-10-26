@@ -37,7 +37,7 @@ PAIR_TRIES = 5
 
 # what a paired phone may ask for (the same requests the app's own page uses)
 ALLOWED = {
-    "/api/inv/list", "/api/inv/find", "/api/inv/save", "/api/inv/settings", "/api/serial",
+    "/api/inv/list", "/api/inv/find", "/api/inv/save", "/api/inv/settings", "/api/inv/restore", "/api/serial",
     "/api/printers/list", "/api/printer/status", "/api/printer/history", "/api/printer/files",
     "/api/printer/job_plan", "/api/printer/check_file", "/api/printer/link", "/api/shopping",
     "/api/status",
@@ -187,6 +187,8 @@ class PhoneHandler(BaseHTTPRequestHandler):
                 return self._send(200, {**hello(), "phone": phone["name"]})
             if self.path not in ALLOWED:
                 return self._send(403, {"error": "The phone can't do that."})
+            if self.path == "/api/inv/save" and body.get("id"):
+                body = _merged(body)
             result = cfs_gui.light_api(self.path, body)
             if result is None:
                 return self._send(403, {"error": "The phone can't do that."})
@@ -214,6 +216,16 @@ class PhoneServer(cfs_gui.LocalServer):
         import socketserver
         socketserver.TCPServer.server_bind(self)
         self.server_name, self.server_port = "0.0.0.0", self.server_address[1]
+
+
+def _merged(body):
+    """A spool update from the phone, on top of the stored spool: anything the phone didn't send is kept
+    (saving replaces every field, so a missing one would otherwise be wiped)."""
+    with inv._db() as con:
+        row = con.execute("SELECT * FROM spools WHERE id = ? AND deleted_at IS NULL", (int(body["id"]),)).fetchone()
+    if row is None:
+        raise IOError("That spool is no longer in your inventory.")
+    return {**{k: row[k] for k in inv.FIELDS}, **{k: v for k, v in body.items() if k in inv.FIELDS or k == "id"}}
 
 
 def hello():

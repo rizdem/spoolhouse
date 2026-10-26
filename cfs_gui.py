@@ -28,7 +28,7 @@ import printer
 
 PORT = 8765
 APP_NAME = "Spoolhouse"
-APP_VERSION = "2.5.0"
+APP_VERSION = "2.5.1"
 # Your Buy Me a Coffee (or Ko-fi / GitHub Sponsors) page. Leave empty to hide the Support button.
 SUPPORT_URL = "https://buymeacoffee.com/rizdem"
 # the only pages the About box can open (the page asks by name, never by URL)
@@ -935,11 +935,15 @@ def light_api(path, body):
     if path == "/api/inv/list":
         return {"spools": inv.list_all(), "in_printer": spools_in_printer()}
     if path == "/api/inv/find":
-        return {"spool": inv.find_serial(body.get("serial"))}
+        return {"spool": inv.find_serial(body.get("serial")),
+                "deleted_spool": inv.find_serial(body.get("serial"), deleted=True)}
     if path == "/api/inv/save":
         # every new spool comes from a scanned (or just-written) tag, so stock stays accurate
         if not body.get("id") and not (body.get("serial") or body.get("uids")):
             raise IOError("Scan the spool's tag to add it to your inventory.")
+        existing = None if body.get("id") else inv.find_serial(body.get("serial"))
+        if existing:  # one inventory entry per spool (its two tags share a serial)
+            raise IOError(f"That spool is already in your inventory (serial {existing['serial']}).")
         return {"spool": inv.save(body)}
     if path == "/api/inv/settings":
         return {"settings": inv.set_settings(body) if body else inv.get_settings()}

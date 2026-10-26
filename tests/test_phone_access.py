@@ -106,3 +106,30 @@ def test_the_certificate_stays_the_same(server):
     pa.stop()
     pa.start(port=0, host="127.0.0.1", announce=False)
     assert pa.status()["fingerprint"] == fp  # phones paired earlier keep trusting it
+
+
+def test_phone_updates_keep_what_they_leave_out(server, spool):
+    s = spool(serial="590267", cost=11.99, source="Amazon", remaining_g=800)
+    token, _ = pair(server)
+    status, reply = call(server, "/api/inv/save", {"id": s["id"], "remaining_g": 640}, token=token)
+    assert status == 200 and reply["spool"]["remaining_g"] == 640
+    assert reply["spool"]["cost"] == 11.99 and reply["spool"]["source"] == "Amazon"  # not wiped
+
+
+def test_phone_can_add_a_scanned_spool_but_not_twice(server):
+    token, _ = pair(server)
+    new = {"serial": "123456", "uids": "CA0B5CF8", "material": "01001", "color": "FFFDD0",
+           "total_g": 1000, "remaining_g": 1000, "cost": 12.5, "source": "Creality Store", "purchased": "2026-10-26"}
+    status, reply = call(server, "/api/inv/save", new, token=token)
+    assert status == 200 and reply["spool"]["serial"] == "123456"
+    assert "already in your inventory" in call(server, "/api/inv/save", new, token=token)[1]["error"]
+
+
+def test_find_mentions_a_spool_in_recently_deleted(server, spool):
+    s = spool(serial="777777")
+    inv.delete(s["id"])
+    token, _ = pair(server)
+    reply = call(server, "/api/inv/find", {"serial": "777777"}, token=token)[1]
+    assert reply["spool"] is None and reply["deleted_spool"]["id"] == s["id"]
+    assert call(server, "/api/inv/restore", {"ids": [s["id"]]}, token=token)[0] == 200
+    assert call(server, "/api/inv/find", {"serial": "777777"}, token=token)[1]["spool"]["id"] == s["id"]
