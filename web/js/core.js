@@ -1,9 +1,16 @@
 // Spoolhouse - Shared state and helpers, the filament pickers, page switching and the NFC reader status.
 // filled in by the server (see cfs_gui.page): materials, weights, grams per weight, support link on/off
 const {materials:MATERIALS, weights:WEIGHTS, grams:GRAMS, support:HAS_SUPPORT}=window.CFS_CONFIG;
+// Mac or Windows: elements with Windows-specific wording carry it in data-win
+const IS_WIN=window.CFS_CONFIG.platform==="windows";
+document.documentElement.dataset.platform=IS_WIN?"windows":"mac";
 const COLORS=[["FFFFFF","White"],["000000","Black"],["808080","Grey"],["C0C0C0","Silver"],["FF0000","Red"],["C12E1F","Dark red"],["FF6B35","Orange"],["FFD700","Yellow"],["00A651","Green"],["006400","Dark green"],["0047AB","Blue"],["87CEEB","Sky blue"],
 ["800080","Purple"],["FF69B4","Pink"],["8B4513","Brown"],["F5DEB3","Beige"],["D4AF37","Gold"],["B87333","Copper"],["40E0D0","Turquoise"],["000080","Navy"],["E6E6FA","Lavender"],["FFFDD0","Cream"],["7FFF00","Lime"],["F0F8FF","Clear/natural"]];
 const $=id=>document.getElementById(id);
+if(IS_WIN){
+  document.querySelectorAll("[data-win]").forEach(e=>{e.innerHTML=e.dataset.win});
+  $("q").placeholder=$("q").placeholder.replace("⌘F","Ctrl+F");
+}
 // create an element with an optional class and text (used everywhere)
 function el(tag,cls,text){const e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e}
 const store={get(k,d){try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};

@@ -11,7 +11,7 @@ function showUpdate(s){
   if(card){
     $("updTitle").textContent=`Spoolhouse ${v} is available`;
     const d=s.latest.published?new Date(s.latest.published).toLocaleDateString([], {day:"numeric",month:"long",year:"numeric"}):"";
-    $("updText").textContent=`You have ${s.current}.`+(d?` Released ${d}.`:"")+" Download it from GitHub, quit Spoolhouse and replace the app in Applications. Your data is kept.";
+    $("updText").textContent=`You have ${s.current}.`+(d?` Released ${d}.`:"")+(IS_WIN?" Download and run the new installer. Your data is kept.":" Download it from GitHub, quit Spoolhouse and replace the app in Applications. Your data is kept.");
   }
   const st=$("upStatus"); if(!st)return;
   $("upAuto").checked=s.auto;

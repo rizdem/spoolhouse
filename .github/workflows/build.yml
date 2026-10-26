@@ -1,0 +1,94 @@
+name: Build
+
+# Push a version tag (git tag v2.4.0 && git push origin v2.4.0) to build all three downloads and put
+# them on a DRAFT release for checking before publishing. "Run workflow" on the Actions tab builds them
+# without a release (download them from the run's Artifacts).
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  mac:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { arch: arm64, label: apple-silicon, runner: macos-latest }
+          - { arch: intel, label: intel, runner: macos-26-intel }
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Python environment (Apple Silicon)
+        if: matrix.arch == 'arm64'
+        run: |
+          uv venv --python 3.12 --python-preference only-managed .venv
+          uv pip install --python .venv/bin/python -r requirements-dev.txt
+      - name: Python environment (Intel, for macOS 10.15+)
+        if: matrix.arch == 'intel'
+        run: |
+          uv venv --python cpython-3.12-macos-x86_64 --python-preference only-managed .venv-x86_64
+          MACOSX_DEPLOYMENT_TARGET=10.15 uv pip install --python .venv-x86_64/bin/python \
+            --python-platform x86_64-apple-darwin -r requirements-dev.txt
+      - name: Build (tests, app, macOS version check, zip)
+        run: ./build_app.sh ${{ matrix.arch }}
+      - name: Self-test the built app
+        run: |
+          APP=dist/Spoolhouse.app; [ "${{ matrix.arch }}" = intel ] && APP=dist/intel/Spoolhouse.app
+          "$APP/Contents/MacOS/Spoolhouse" --self-test
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mac-${{ matrix.label }}
+          path: dist/Spoolhouse-*-${{ matrix.label }}.zip
+          if-no-files-found: error
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Python environment
+        run: |
+          uv venv --python 3.12 --python-preference only-managed .venv
+          uv pip install --python .venv\Scripts\python.exe -r requirements-dev.txt
+      - name: Inno Setup (if this machine doesn't have it)
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) { choco install innosetup -y --no-progress }
+      - name: Build (tests, app, self-test, installer)
+        run: .venv\Scripts\python.exe build_windows.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: dist/Spoolhouse-*-windows-setup.exe
+          if-no-files-found: error
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [mac, windows]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: out
+          merge-multiple: true
+      - name: Draft release with the three downloads
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          VERSION="${TAG#v}"
+          APP_VERSION=$(python3 -c 'import re; print(re.search(r"APP_VERSION = \"([^\"]+)\"", open("cfs_gui.py").read()).group(1))')
+          [ "$VERSION" = "$APP_VERSION" ] || { echo "Tag $TAG doesn't match APP_VERSION $APP_VERSION"; exit 1; }
+          python3 tools/release_notes.py "$VERSION" > notes.md
+          ls -l out
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" out/* --clobber
+          else
+            gh release create "$TAG" out/* --draft --title "Spoolhouse $VERSION" --notes-file notes.md
+          fi

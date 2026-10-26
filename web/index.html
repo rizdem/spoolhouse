@@ -157,22 +157,22 @@
 
 <div class="card">
   <label class="h">Running in the background</label>
-  <p class="mute" id="appNotNative" style="margin:0" hidden>These options are only available in the Mac app.</p>
-  <div class="setrow"><div><div class="stt">Keep tracking in the menu bar</div>
-    <div class="mute">Closing the window leaves the app running from its icon in the menu bar, so printer usage keeps coming off your stock. Use Quit (⌘Q) to stop it completely.</div></div>
+  <p class="mute" id="appNotNative" style="margin:0" hidden>These options are only available in the app, not in a browser.</p>
+  <div class="setrow"><div><div class="stt" data-win="Keep running in the system tray">Keep tracking in the menu bar</div>
+    <div class="mute" data-win="Closing the window leaves Spoolhouse running from its icon in the system tray (by the clock), so printer usage keeps coming off your stock. Use Quit in the tray icon's menu to stop it completely.">Closing the window leaves the app running from its icon in the menu bar, so printer usage keeps coming off your stock. Use Quit (⌘Q) to stop it completely.</div></div>
     <label class="switch"><input type="checkbox" id="setMenubar"><span></span></label></div>
-  <div class="setrow"><div><div class="stt">Open at login</div>
-    <div class="mute" id="loginNote">Starts quietly in the menu bar when you log in to your Mac, so tracking never stops.</div></div>
+  <div class="setrow"><div><div class="stt" data-win="Start with Windows">Open at login</div>
+    <div class="mute" id="loginNote" data-win="Starts quietly in the system tray when you sign in to Windows, so tracking never stops.">Starts quietly in the menu bar when you log in to your Mac, so tracking never stops.</div></div>
     <label class="switch"><input type="checkbox" id="setLogin"><span></span></label></div>
 </div>
 
 <div class="card">
   <label class="h">Notifications and alerts</label>
-  <p class="mute" id="ntNotNative" style="margin:0" hidden>Notifications are available in the Mac app.</p>
+  <p class="mute" id="ntNotNative" style="margin:0" hidden>Notifications are available in the app, not in a browser.</p>
   <div id="ntKinds"></div>
   <div class="setrow"><div><div class="stt">CFS humidity limit</div><div class="mute">Warn when a CFS unit's humidity goes above this. Most filament prints best kept below 40–50%.</div></div>
     <div style="display:flex;align-items:center;gap:8px"><input type="number" id="ntHum" min="20" max="90" step="1" style="width:84px"><span class="mute">%</span></div></div>
-  <div class="setrow"><div><div class="stt">Test</div><div class="mute">macOS asks once whether __APP_NAME__ may send notifications. If nothing appears, check System Settings → Notifications.</div></div>
+  <div class="setrow"><div><div class="stt">Test</div><div class="mute" data-win="Notifications come from the Spoolhouse icon in the system tray. If nothing appears, check Settings → System → Notifications, and that Do not disturb is off.">macOS asks once whether __APP_NAME__ may send notifications. If nothing appears, check System Settings → Notifications.</div></div>
     <button class="btn" id="ntTest">Send a test notification</button></div>
 </div>
 
@@ -189,7 +189,7 @@
 
 <div class="card">
   <label class="h">Automatic backups</label>
-  <p class="mute" style="margin:0 0 6px">Back up to a folder on a schedule: a NAS share, an external drive or a cloud-synced folder. For a NAS, connect to the share in Finder first (Go → Connect to Server, e.g. smb://nas.local/backups) and tick "Remember this password". Backups pause while it isn't connected and catch up when it is.</p>
+  <p class="mute" style="margin:0 0 6px" data-win="Back up to a folder on a schedule: a NAS share, an external drive or a cloud-synced folder. For a NAS, map it as a network drive first (File Explorer → This PC → Map network drive, e.g. \\nas\backups) and tick &quot;Reconnect at sign-in&quot;. Backups pause while it isn't connected and catch up when it is.">Back up to a folder on a schedule: a NAS share, an external drive or a cloud-synced folder. For a NAS, connect to the share in Finder first (Go → Connect to Server, e.g. smb://nas.local/backups) and tick "Remember this password". Backups pause while it isn't connected and catch up when it is.</p>
   <div class="setrow"><div style="min-width:0"><div class="stt">Folder</div><div class="mute" id="bkDir" style="word-break:break-all">Not set</div></div>
     <button class="btn" id="bkChoose">Choose folder…</button></div>
   <div class="setrow"><div><div class="stt">How often</div></div>

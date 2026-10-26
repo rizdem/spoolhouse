@@ -1,7 +1,7 @@
-// Spoolhouse - Settings: menu bar and login, notifications, backups and export.
+// Spoolhouse - Settings: menu bar/tray and login, notifications, backups and export.
 // ---------- settings
 async function loadSettings(){
-  // the other sections load regardless: only the menu bar options need the Mac app
+  // the other sections load regardless: only the menu bar/tray options need the desktop app
   loadBackups();
   loadNotify();
   try{
@@ -45,7 +45,7 @@ async function loadBackups(){
     const s=await call("/api/backup/status");
     $("bkDir").textContent=s.backup_dir||"Not set"; $("bkDb").textContent=s.db_path;
     $("bkFreq").value=s.backup_freq; $("bkKeep").value=String(s.backup_keep);
-    ["bkChoose","bkRestore"].forEach(id=>{$(id).disabled=!s.native;$(id).title=s.native?"":"Available in the Mac app"});
+    ["bkChoose","bkRestore"].forEach(id=>{$(id).disabled=!s.native;$(id).title=s.native?"":"Available in the app, not in a browser"});
     $("bkRunNow").disabled=!s.backup_dir;
     const st=$("bkStatus");
     if(s.backup_error){st.className="warn";st.textContent=`${s.backup_error} Last tried ${when(s.backup_tried)}; it will try again within ${Math.round(s.check_secs/60)} minutes.`+(s.backup_last?` Last good backup: ${when(s.backup_last)}.`:"")}
