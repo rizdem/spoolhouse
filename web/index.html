@@ -10,9 +10,9 @@
   <button data-view="printer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="9" rx="2"/><path d="M7 18v3h10v-3"/></svg>Printers<span class="badge" id="pbadge" hidden></span></button>
   <button data-view="create"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Create</button>
   <button data-view="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Settings</button>
-  <button class="support" id="support" hidden>🍺 Buy me a beer</button>
+  <button class="support" id="support" hidden title="Support Spoolhouse on Buy Me a Coffee"><img src="img/bmc-button.svg" alt="Buy me a beer"></button>
   <div class="reader" id="reader"><span class="rdot"></span><div><div class="rt">Checking reader…</div><div class="rn"></div></div></div>
-  <div class="ver">Version __VERSION__<button class="updlink" id="updLink" hidden>Update available</button></div>
+  <div class="ver"><button class="verbtn" id="aboutLink" title="About __APP_NAME__">Version __VERSION__</button><button class="updlink" id="updLink" hidden>Update available</button></div>
 </nav>
 
 <section class="view" id="view-create"><div class="wrap cwrap">
@@ -183,6 +183,8 @@
     <label class="switch"><input type="checkbox" id="upAuto"><span></span></label></div>
   <div class="setrow"><div style="min-width:0"><div class="stt">You have version __VERSION__</div><div class="mute" id="upStatus"></div></div>
     <button class="btn" id="upCheck">Check now</button></div>
+  <div class="setrow"><div><div class="stt">About __APP_NAME__</div><div class="mute">Credits, licence, source code and how to report a problem.</div></div>
+    <button class="btn" id="aboutBtn">About…</button></div>
 </div>
 
 <div class="card">
@@ -231,6 +233,26 @@
 </div>
 
 
+
+<div class="overlay" id="aboutSheet" hidden>
+  <div class="sheet about" role="dialog" aria-modal="true" aria-labelledby="abTitle">
+    <img class="abicon" src="img/icon.png" alt="" width="112" height="112">
+    <h2 id="abTitle" class="abname">__APP_NAME__</h2>
+    <div class="abver">Version __VERSION__</div>
+    <p class="abtag">Filament inventory for Creality CFS. Free and open source.</p>
+    <div class="ablinks">
+      <button class="linkbtn" data-link="site">spoolhouse.app</button>
+      <button class="linkbtn" data-link="source">Source code on GitHub</button>
+      <button class="linkbtn" data-link="issues">Report a problem</button>
+    </div>
+    <p class="abcredit">The CFS tag format comes from the reverse-engineering work in
+      <button class="linkbtn" data-link="credits">DnG-Crafts/K2-RFID</button>. Thank you!</p>
+    <p class="abcredit mute">Licensed under the <button class="linkbtn" data-link="licence">GNU GPL v3.0</button>.
+      Not affiliated with or endorsed by Creality.</p>
+    <button class="abbmc" id="abSupport" title="Support Spoolhouse on Buy Me a Coffee"><img src="img/bmc-button.svg" alt="Buy me a beer"></button>
+    <div class="foot"><span class="sp"></span><button class="btn pri" id="abClose">Close</button></div>
+  </div>
+</div>
 
 <div class="overlay" id="trashSheet" hidden>
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="trTitle" style="max-width:600px">
@@ -335,6 +357,7 @@
 <script src="js/printers.js?v=__VERSION__"></script>
 <script src="js/settings.js?v=__VERSION__"></script>
 <script src="js/updates.js?v=__VERSION__"></script>
+<script src="js/about.js?v=__VERSION__"></script>
 <script src="js/printlog.js?v=__VERSION__"></script>
 <script src="js/printer-edit.js?v=__VERSION__"></script>
 <script src="js/main.js?v=__VERSION__"></script>

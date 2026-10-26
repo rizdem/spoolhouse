@@ -28,9 +28,17 @@ import printer
 
 PORT = 8765
 APP_NAME = "Spoolhouse"
-APP_VERSION = "2.1.0"
+APP_VERSION = "2.2.0"
 # Your Buy Me a Coffee (or Ko-fi / GitHub Sponsors) page. Leave empty to hide the Support button.
 SUPPORT_URL = "https://buymeacoffee.com/rizdem"
+# the only pages the About box can open (the page asks by name, never by URL)
+LINKS = {
+    "site": "https://spoolhouse.app",
+    "source": "https://github.com/rizdem/spoolhouse",
+    "issues": "https://github.com/rizdem/spoolhouse/issues",
+    "licence": "https://github.com/rizdem/spoolhouse/blob/main/LICENSE",
+    "credits": "https://github.com/DnG-Crafts/K2-RFID",
+}
 
 
 class LocalServer(ThreadingHTTPServer):
@@ -793,6 +801,11 @@ def light_api(path, body):
         if SUPPORT_URL:
             webbrowser.open(SUPPORT_URL)
         return {"ok": bool(SUPPORT_URL)}
+    if path == "/api/open":
+        url = LINKS.get(body.get("link"))
+        if url:
+            webbrowser.open(url)
+        return {"ok": bool(url)}
     if path == "/api/update/status":
         if "auto" in body:
             updates.set_auto(bool(body["auto"]))

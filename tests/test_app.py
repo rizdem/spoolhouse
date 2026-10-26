@@ -179,3 +179,11 @@ def test_update_status_reaches_the_page_after_a_failed_check(server):
     updates.check(cfs_gui.APP_VERSION, fetch=offline)
     st = post(server, "/api/update/status")
     assert "error" not in st and st["available"] and st["problem"] == "Couldn't reach GitHub."
+
+
+def test_about_links_open_only_known_pages(server, monkeypatch):
+    opened = []
+    monkeypatch.setattr(cfs_gui.webbrowser, "open", opened.append)
+    assert post(server, "/api/open", {"link": "source"})["ok"]
+    assert not post(server, "/api/open", {"link": "https://evil.example"})["ok"]
+    assert opened == ["https://github.com/rizdem/spoolhouse"]
