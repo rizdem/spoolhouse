@@ -32,6 +32,7 @@ jobs:
         if: matrix.arch == 'intel'
         run: |
           uv venv --python cpython-3.12-macos-x86_64 --python-preference only-managed .venv-x86_64
+          tools/intel_zeroconf.sh .venv-x86_64/bin/python   # no Intel Mac wheel: plain Python, for macOS 10.15+
           MACOSX_DEPLOYMENT_TARGET=10.15 uv pip install --python .venv-x86_64/bin/python \
             --python-platform x86_64-apple-darwin -r requirements-dev.txt
       - name: Build (tests, app, macOS version check, zip)
