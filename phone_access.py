@@ -185,6 +185,8 @@ class PhoneHandler(BaseHTTPRequestHandler):
                 return self._send(401, {"error": "This phone isn't paired (or was removed). Pair it again."})
             if self.path == "/api/phone/hello":
                 return self._send(200, {**hello(), "phone": phone["name"]})
+            if self.path == "/api/phone/events":
+                return self._send(200, events(body.get("since")))
             if self.path not in ALLOWED:
                 return self._send(403, {"error": "The phone can't do that."})
             if self.path == "/api/inv/save" and body.get("id"):
@@ -225,7 +227,23 @@ def _merged(body):
         row = con.execute("SELECT * FROM spools WHERE id = ? AND deleted_at IS NULL", (int(body["id"]),)).fetchone()
     if row is None:
         raise IOError("That spool is no longer in your inventory.")
-    return {**{k: row[k] for k in inv.FIELDS}, **{k: v for k, v in body.items() if k in inv.FIELDS or k == "id"}}
+    merged = {**{k: row[k] for k in inv.FIELDS}, **{k: v for k, v in body.items() if k in inv.FIELDS or k == "id"}}
+    # weighed while away: that was right *then*, so take off anything printed from it since
+    measured = body.get("measured_at")
+    if measured and "remaining_g" in body:
+        with inv._db() as con:
+            used = con.execute("SELECT COALESCE(SUM(grams), 0) FROM usage WHERE spool_id = ? AND at > ?",
+                               (int(body["id"]), float(measured))).fetchone()[0]
+        merged["remaining_g"] = max(0.0, float(body["remaining_g"]) - used)
+    return merged
+
+
+def events(since):
+    """Alerts since the phone last looked, plus whether a print is running (so it can look again sooner)."""
+    found, latest = inv.events_since(since)
+    printing = any((cfs_gui.pstate(p["id"])["job"] or {}).get("state") in ("printing", "paused")
+                   for p in inv.list_printers())
+    return {"events": found, "latest": latest, "printing": printing}
 
 
 def hello():

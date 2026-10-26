@@ -28,7 +28,7 @@ import printer
 
 PORT = 8765
 APP_NAME = "Spoolhouse"
-APP_VERSION = "2.6.0"
+APP_VERSION = "2.7.0"
 # Your Buy Me a Coffee (or Ko-fi / GitHub Sponsors) page. Leave empty to hide the Support button.
 SUPPORT_URL = "https://buymeacoffee.com/rizdem"
 # the only pages the About box can open (the page asks by name, never by URL)
@@ -249,8 +249,18 @@ def notify_enabled(kind):
     return inv.get_pref(f"notify_{kind}", "1") == "1"
 
 
+# alerts worth passing on to a paired phone (it chooses which to show)
+PHONE_KINDS = {"print_done", "fit", "low_stock", "to_charge", "humidity"}
+
+
 def notify(kind, title, body):
-    """Show a system notification (desktop app only), if that kind is switched on."""
+    """Show a system notification (desktop app only), if that kind is switched on.
+    Alerts a phone might want are also logged for it, whatever the desktop's own setting."""
+    if kind in PHONE_KINDS:
+        try:
+            inv.log_event(kind, title, body)
+        except Exception as e:
+            on_error(f"event log: {e}")
     if not notify_enabled(kind) or "notify" not in NATIVE:
         return
     try:
