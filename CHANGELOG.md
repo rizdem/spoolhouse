@@ -3,6 +3,14 @@
 Versions follow [semantic versioning](https://semver.org): **major** for big or breaking
 changes, **minor** for new features, **patch** for bug fixes.
 
+## 2.7.3 - 2026-10-27
+
+### Fixed
+- Pairing a phone: the QR code is easier for a phone camera to read. It's shown at its own size with crisp,
+  whole-pixel squares and a full white margin (it was shrunk, which blurred it), and the link inside is
+  shorter (the two best network addresses, and a shorter form of the security fingerprint), so the code has
+  fewer squares. Needs Spoolhouse for Android 0.6.1 or later.
+
 ## 2.7.2 - 2026-10-26
 
 ### Changed
