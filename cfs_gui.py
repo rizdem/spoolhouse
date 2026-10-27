@@ -28,7 +28,7 @@ import printer
 
 PORT = 8765
 APP_NAME = "Spoolhouse"
-APP_VERSION = "2.7.4"
+APP_VERSION = "2.7.5"
 # Your Buy Me a Coffee (or Ko-fi / GitHub Sponsors) page. Leave empty to hide the Support button.
 SUPPORT_URL = "https://buymeacoffee.com/rizdem"
 # the only pages the About box can open (the page asks by name, never by URL)
@@ -104,6 +104,7 @@ def printer_refresh(pid):
         except IOError:
             job = None  # Moonraker unavailable: slots still show, usage waits until it's back
         if job:
+            screen_time(job, data.get("status") or {})
             track_usage(p, job, data)
             catch_up(p)
         check_humidity(p, data)
@@ -116,6 +117,17 @@ def printer_refresh(pid):
             on_error(f"fit check: {e}")
         st.update(data=data, job=job, error=None, at=time.time(), logged_error=None)
         return data
+
+
+def screen_time(job, status):
+    """While printing, use the printer's own time left and progress (as on its screen) when it sends them."""
+    if job["state"] not in ("printing", "paused"):
+        return
+    left, progress = status.get("printLeftTime"), status.get("printProgress")
+    if isinstance(left, (int, float)) and left > 0:
+        job["left_secs"] = round(left)
+    if isinstance(progress, (int, float)) and 0 <= progress <= 100:
+        job["progress"] = round(progress / 100, 4)
 
 
 def _autolink_skips():

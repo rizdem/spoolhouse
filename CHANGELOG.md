@@ -3,6 +3,12 @@
 Versions follow [semantic versioning](https://semver.org): **major** for big or breaking
 changes, **minor** for new features, **patch** for bug fixes.
 
+## 2.7.5 - 2026-10-27
+
+### Fixed
+- Time left while printing now matches the printer's own screen: it comes from the printer itself (it was
+  worked out from the slicer's estimate, which could be several minutes out).
+
 ## 2.7.4 - 2026-10-27
 
 ### Fixed
