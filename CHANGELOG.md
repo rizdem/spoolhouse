@@ -3,6 +3,13 @@
 Versions follow [semantic versioning](https://semver.org): **major** for big or breaking
 changes, **minor** for new features, **patch** for bug fixes.
 
+## 2.7.4 - 2026-10-27
+
+### Fixed
+- Reading Creality's own spool tags: a tag's record only has to be readable up to its serial number. Some
+  official spools have other bytes in the unused space after it, and could be turned down as "not a valid
+  CFS record".
+
 ## 2.7.3 - 2026-10-27
 
 ### Fixed

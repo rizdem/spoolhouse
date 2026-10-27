@@ -41,3 +41,14 @@ def test_printer_tag_record_from_a_real_k2():
     assert (tag["material"], tag["color"], tag["serial"]) == ("09001", "FF0000", "460882")
     assert printer.parse_tag_record("none") is None
     assert printer.parse_tag_record("") is None
+
+
+def test_reads_crealitys_own_tags():
+    """Creality's own spools: the record, then bytes that aren't text where Spoolhouse writes '0's."""
+    import cfs_tag as cfs
+    record = b"6C9260276A21010010FFFFFF0165000001"
+    for filler in (0x00, 0xFF):
+        txt = cfs.record_text(record + bytes([filler]) * (48 - len(record)))
+        rec = cfs.parse_record(txt)
+        assert (rec["material"], rec["color"], rec["serial"], rec["weight"]) == ("01001", "#FFFFFF", "000001", "500g")
+    assert cfs.record_text(b"A" * 48) is None  # not a CFS record
