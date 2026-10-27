@@ -43,15 +43,19 @@ def fetch_slots(host):
     try:
         ws.send(json.dumps({"method": "get", "params": {"boxsInfo": 1}}))
         end = time.time() + TIMEOUT
-        info = None
-        while time.time() < end and info is None:
+        info, status = None, {}
+        # wait for the slots, and (briefly) for the print status the printer pushes when we connect
+        while time.time() < end and (info is None or ("printLeftTime" not in status and time.time() < end - TIMEOUT + 1.5)):
             try:
                 msg = json.loads(ws.recv())
             except (ValueError, TypeError):
                 continue  # heartbeat "ok" and other non-JSON frames
             except websocket.WebSocketTimeoutException:
                 break
-            if isinstance(msg, dict) and isinstance(msg.get("boxsInfo"), dict):
+            if not isinstance(msg, dict):
+                continue
+            status.update({k: msg[k] for k in ("printLeftTime", "printProgress", "printJobTime") if k in msg})
+            if isinstance(msg.get("boxsInfo"), dict):
                 info = msg["boxsInfo"]
     finally:
         try:
@@ -65,8 +69,8 @@ def fetch_slots(host):
                            "temp": None, "humidity": None}],
                 "slots": [{"key": "0-0", "label": "Spool holder", "present": True, "printing": False,
                            "material_code": "", "vendor": "", "type": "", "name": "Spool holder",
-                           "color": "", "remaining_mm": None, "percent": None}]}
-    return _normalise(info)
+                           "color": "", "remaining_mm": None, "percent": None}], "status": status}
+    return {**_normalise(info), "status": status}
 
 
 def _normalise(info):

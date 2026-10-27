@@ -94,3 +94,16 @@ def test_job_progress_and_time_left(monkeypatch):
     assert printer.fetch_job("k2.local")["left_secs"] == 6400   # the slicer's estimate wins
     replies["/printer/objects/query"]["status"]["print_stats"]["state"] = "standby"
     assert printer.fetch_job("k2.local")["progress"] is None
+
+
+def test_time_left_from_the_printers_screen():
+    import cfs_gui
+    job = {"state": "printing", "left_secs": 780, "progress": 0.3}
+    cfs_gui.screen_time(job, {"printLeftTime": 1080, "printProgress": 12})
+    assert job["left_secs"] == 1080 and job["progress"] == 0.12
+    idle = {"state": "complete", "left_secs": None, "progress": None}
+    cfs_gui.screen_time(idle, {"printLeftTime": 0, "printProgress": 100})
+    assert idle["left_secs"] is None
+    kept = {"state": "printing", "left_secs": 780, "progress": 0.3}
+    cfs_gui.screen_time(kept, {})  # the printer didn't say: keep the estimate
+    assert kept["left_secs"] == 780
