@@ -1,4 +1,5 @@
 """Phone access: pairing, the pinned certificate, and what a paired phone may (and may not) do."""
+import base64
 import hashlib
 import json
 import socket
@@ -39,10 +40,15 @@ def call(port, path, body=None, token=None, fingerprint=None):
     return status, json.loads(reply.split(b"\r\n\r\n", 1)[1])
 
 
+def hex_fingerprint(f):
+    """The link's fingerprint (base64url) as the hex the phone compares."""
+    return base64.urlsafe_b64decode(f + "=" * (-len(f) % 4)).hex().upper()
+
+
 def pair(port, name="Test phone"):
     qr = pa.start_pairing()
     link = urllib.parse.parse_qs(urllib.parse.urlparse(qr["link"]).query)
-    status, reply = call(port, "/api/phone/pair", {"code": link["c"][0], "name": name}, fingerprint=link["f"][0])
+    status, reply = call(port, "/api/phone/pair", {"code": link["c"][0], "name": name}, fingerprint=hex_fingerprint(link["f"][0]))
     assert status == 200
     return reply["token"], link
 
@@ -55,15 +61,29 @@ def test_pairing_link_has_everything_the_phone_needs(server):
     qr = pa.start_pairing()
     q = urllib.parse.parse_qs(urllib.parse.urlparse(qr["link"]).query)
     assert qr["link"].startswith("spoolhouse://pair?")
-    assert len(q["c"][0]) == 6 and len(q["f"][0]) == 64 and q["p"] == [str(pa.PORT)]
+    assert len(q["c"][0]) == 6 and len(q["f"][0]) == 43
+    assert hex_fingerprint(q["f"][0]) == pa.STATE["info"]["fingerprint"]
+    assert q.get("p") == (None if pa.PORT == 8766 else [str(pa.PORT)])
     assert "127.0.0.1" not in q["h"][0].split(",") or q["h"] == ["127.0.0.1"]
-    assert qr["qr_svg"].startswith("<svg")
+    assert qr["qr_svg"].startswith('<svg shape-rendering="crispEdges"')
+
+
+def test_pairing_qr_code_stays_easy_to_scan(server, monkeypatch):
+    """Even with a long computer name and several addresses, the code stays small (few, whole-pixel squares)."""
+    pa.STATE["info"] = dict(pa.STATE["info"], name="DESKTOP-4KQ7P2M Richard's gaming PC",
+                            addresses=["192.168.1.23", "172.27.144.1", "172.18.0.1", "10.8.0.5"])
+    qr = pa.start_pairing()
+    q = urllib.parse.parse_qs(urllib.parse.urlparse(qr["link"]).query)
+    assert q["h"] == ["192.168.1.23,172.27.144.1"]  # the two best only
+    import segno
+    assert segno.make(qr["link"], error="m").version <= 8
+    assert qr["qr_px"] % pa.QR_SCALE == 0 and qr["qr_px"] <= 360
 
 
 def test_pair_then_use_the_inventory(server, spool):
     s = spool(serial="590267")
     token, link = pair(server)
-    status, reply = call(server, "/api/inv/list", token=token, fingerprint=link["f"][0])
+    status, reply = call(server, "/api/inv/list", token=token, fingerprint=hex_fingerprint(link["f"][0]))
     assert status == 200 and [x["serial"] for x in reply["spools"]] == ["590267"]
     status, reply = call(server, "/api/inv/find", {"serial": "590267"}, token=token)
     assert reply["spool"]["id"] == s["id"]

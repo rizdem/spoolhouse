@@ -13,6 +13,7 @@ Off until switched on in Settings → Phone access. Then:
   * it announces itself on the network (mDNS, "_spoolhouse._tcp"), so the phone finds it again if the
     computer's address changes.
 """
+import base64
 import datetime
 import hashlib
 import ipaddress
@@ -128,11 +129,30 @@ def start_pairing():
     with _LOCK:
         STATE["pairing"] = {"code": code, "until": time.time() + PAIR_MINUTES * 60, "tries": 0}
     info = STATE["info"]
-    link = "spoolhouse://pair?" + urllib.parse.urlencode({
-        "h": ",".join(info["addresses"]), "p": PORT, "c": code, "f": info["fingerprint"], "n": info["name"]})
+    return {"code": code, "minutes": PAIR_MINUTES, **pair_link(code), **status()}
+
+
+def pair_link(code):
+    """The pairing link and its QR code. Kept short, so the code has as few squares as possible: the two best
+    addresses (the phone finds the computer on the network if it moves), the port only if it isn't the usual
+    one, and the certificate fingerprint in base64url (43 characters, not 64)."""
+    info = STATE["info"]
+    fields = {"h": ",".join(info["addresses"][:2]), "c": code,
+              "f": base64.urlsafe_b64encode(bytes.fromhex(info["fingerprint"])).rstrip(b"=").decode(),
+              "n": info["name"]}
+    if PORT != 8766:
+        fields["p"] = PORT
+    link = "spoolhouse://pair?" + urllib.parse.urlencode(fields)
     import segno
-    qr = segno.make(link, error="m").svg_inline(scale=6, dark="#0f1c24", light="#ffffff", border=2)
-    return {"code": code, "minutes": PAIR_MINUTES, "link": link, "qr_svg": qr, **status()}
+    qr = segno.make(link, error="m")
+    # every square a whole number of pixels with crisp edges (blurred edges are what cameras struggle with
+    # on a screen), and the full 4-square white margin QR codes are meant to have
+    svg = qr.svg_inline(scale=QR_SCALE, dark="#000000", light="#ffffff", border=4)
+    svg = svg.replace("<svg ", '<svg shape-rendering="crispEdges" ', 1)
+    return {"link": link, "qr_svg": svg, "qr_px": qr.symbol_size(scale=QR_SCALE, border=4)[0]}
+
+
+QR_SCALE = 6
 
 
 def _redeem(code, phone_name):

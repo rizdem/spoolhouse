@@ -415,7 +415,8 @@ nav .verbtn:hover{background:none;text-decoration:underline}
 
 /* Phone access pairing */
 .sheet.pairsheet{max-width:420px;text-align:center}
-.pairsheet .qr{display:grid;place-items:center;margin:12px auto;background:#fff;border-radius:14px;padding:10px;width:max-content}
-.pairsheet .qr svg{display:block;width:260px;height:auto}
+/* shown at its own size (whole pixels per square, white margin built in): scaling blurs it for cameras */
+.pairsheet .qr{display:grid;place-items:center;margin:12px auto;background:#fff;border-radius:10px;width:max-content;max-width:100%;overflow:hidden}
+.pairsheet .qr svg{display:block;image-rendering:pixelated}
 .pairmanual{font-size:13px;max-width:36ch;margin:6px auto 0;text-wrap:balance}
 .pairdone{font-size:17px;font-weight:600;color:var(--ok);margin:18px 0}
