@@ -265,15 +265,27 @@ def do_write(tag, record: bytes):
         raise IOError("Verify mismatch after write")
 
 
+RECORD_CHARS = 34  # date(5) vendor(4) batch(2) '1'+material(5) '0'+colour(6) length(4) serial(6)
+
+
+def record_text(dec: bytes):
+    """Sector 1's decrypted 48 bytes as the record text, or None if it isn't a CFS record. Only the record
+    itself has to be readable: on Creality's own spools the unused space after it isn't plain text."""
+    head = dec[:RECORD_CHARS]
+    if any(b < 0x20 or b > 0x7E for b in head) or head[5:9] != VENDOR_CREALITY.encode() or not head[12:17].isdigit():
+        return None
+    return head.decode("ascii") + "".join(chr(b) if 0x20 <= b <= 0x7E else "0" for b in dec[RECORD_CHARS:48])
+
+
 def do_read(tag) -> dict:
     key = sector1_key(tag)
     raw = b"".join(tag.read(b) for b in (4, 5, 6))
     if raw == bytes(48):
         raise IOError("Tag is blank (no CFS data written yet).")
     dec = decrypt48(raw)
-    if key == KEY_DEFAULT or not dec.isascii() or dec[5:9] != VENDOR_CREALITY.encode():
+    txt = record_text(dec)
+    if key == KEY_DEFAULT or txt is None:
         raise IOError("Tag doesn't contain a valid CFS record (not written by this tool/Creality).")
-    txt = dec.decode("ascii")
     tail = ""
     if tag.auth(8, KEY_DEFAULT):
         tail = b"".join(tag.read(b) for b in (8, 9, 10)).decode("ascii", "replace")
