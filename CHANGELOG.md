@@ -11,6 +11,12 @@ changes, **minor** for new features, **patch** for bug fixes.
   nozzle and bed temperatures and empty spool weight.
 - Spools keep the brand's colour name and print settings (nozzle, bed, speed, flow), and the empty spool
   weight for weighing. "Fill in from <brand>" in the spool editor looks them up for spools you already have.
+- Find a colour by name ("brick", "matte blue"), across all of a brand's materials.
+- Add your own colour (★) when one's missing, or a brand that isn't listed; they're kept with your
+  inventory, so the phone has them too.
+- Spools with a brand colour name show it everywhere (inventory, shopping list, printers, alerts) instead
+  of the colour code.
+- Phones (Spoolhouse for Android 1.1) can use your own colours and see the brand details.
 
 ## 2.8.0 - 2026-10-29
 

@@ -24,12 +24,16 @@ filament system (K2 / K1 / Hi) with a cheap USB NFC reader. No account, no cloud
 
 **Create tags**
 - Write both tags for a spool: pick the material, colour and weight.
+- Or pick the brand: 86 makers and over 7,500 filaments, searchable by colour name ("brick", "matte blue").
+  It sets the tag and brings the brand's colour name, nozzle and bed temperatures and empty spool weight
+  to the spool. Add your own (★) when a colour's missing.
 - Read and wipe tags. Wiped tags are blank and reusable.
 - Every spool gets a unique serial, checked against everything the app has issued before.
 
 **Inventory**
 - Scan a spool to add it, or to update how much is left.
-- Weigh a spool on a kitchen scale and the app works out what's left.
+- Weigh a spool on a kitchen scale and the app works out what's left (using the brand's empty spool weight).
+- Spools show the brand's colour name ("Cement Gray") and keep its print settings (nozzle, bed, speed, flow).
 - Totals: spools in stock (as spool equivalents, e.g. 5.5), kg left, value left, total spent.
 - Running-low alerts per material and colour, with a threshold you set.
 - Search, and filter by type, brand, colour family and shop. The totals follow your filters.
@@ -137,6 +141,9 @@ Run without building:
 
 The CFS tag format and keys come from the reverse-engineering work in
 [DnG-Crafts/K2-RFID](https://github.com/DnG-Crafts/K2-RFID). Thank you!
+
+Brands' colours, temperatures and spool weights come from [SpoolmanDB](https://github.com/Donkie/SpoolmanDB)
+(MIT licence; see `web/filaments-LICENSE.txt`). Missing a colour? It takes contributions.
 
 ## Licence
 

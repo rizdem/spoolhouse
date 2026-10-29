@@ -38,6 +38,7 @@ LINKS = {
     "issues": "https://github.com/rizdem/spoolhouse/issues",
     "licence": "https://github.com/rizdem/spoolhouse/blob/main/LICENSE",
     "credits": "https://github.com/DnG-Crafts/K2-RFID",
+    "spoolmandb": "https://github.com/Donkie/SpoolmanDB",
 }
 
 
