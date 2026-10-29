@@ -4,7 +4,7 @@ cryptography>=43; sys_platform != "darwin" or platform_machine != "x86_64"
 cryptography>=43,<49; sys_platform == "darwin" and platform_machine == "x86_64"
 pywebview>=5,<6
 websocket-client>=1.6
-pyobjc-framework-UserNotifications>=10; sys_platform == "darwin"
+pyobjc-framework-UserNotifications>=12.2.2; sys_platform == "darwin"
 pystray>=0.19; sys_platform == "win32"  # Windows system tray icon
 Pillow>=10; sys_platform == "win32"  # tray icon image
 zeroconf>=0.130  # Phone access: lets the phone find this computer on the network
