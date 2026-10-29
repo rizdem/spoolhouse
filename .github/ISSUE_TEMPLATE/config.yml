@@ -1,5 +1,11 @@
 blank_issues_enabled: false
 contact_links:
+  - name: A question, or help setting it up
+    url: https://github.com/rizdem/spoolhouse/discussions/categories/q-a
+    about: Ask in Discussions, where others can answer and find it later.
+  - name: An idea for Spoolhouse
+    url: https://github.com/rizdem/spoolhouse/discussions/categories/ideas
+    about: Suggest it (or upvote one already there) in Discussions.
   - name: A security problem
     url: https://github.com/rizdem/spoolhouse/security/advisories/new
     about: Please report security problems privately, not as an issue.
