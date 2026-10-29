@@ -7,5 +7,5 @@ websocket-client>=1.6
 pyobjc-framework-UserNotifications>=10; sys_platform == "darwin"
 pystray>=0.19; sys_platform == "win32"  # Windows system tray icon
 Pillow>=10; sys_platform == "win32"  # tray icon image
-zeroconf>=0.130  # Phone access: lets the phone find this computer on the network
+zeroconf>=0.151.5  # Phone access: lets the phone find this computer on the network
 segno>=1.6  # Phone access: the pairing QR code
