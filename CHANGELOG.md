@@ -3,6 +3,15 @@
 Versions follow [semantic versioning](https://semver.org): **major** for big or breaking
 changes, **minor** for new features, **patch** for bug fixes.
 
+## 2.9.0 - 2026-10-29
+
+### Added
+- Pick a brand's filament when writing tags (Create): 86 brands and over 7,500 filaments, from SpoolmanDB.
+  It sets the tag (the nearest Generic type, the brand's colour and spool size) and shows the brand's
+  nozzle and bed temperatures and empty spool weight.
+- Spools keep the brand's colour name and print settings (nozzle, bed, speed, flow), and the empty spool
+  weight for weighing. "Fill in from <brand>" in the spool editor looks them up for spools you already have.
+
 ## 2.8.0 - 2026-10-29
 
 ### Added
