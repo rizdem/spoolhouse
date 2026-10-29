@@ -42,7 +42,7 @@ jobs:
         run: |
           APP=dist/Spoolhouse.app; [ "${{ matrix.arch }}" = intel ] && APP=dist/intel/Spoolhouse.app
           "$APP/Contents/MacOS/Spoolhouse" --self-test
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: mac-${{ matrix.label }}
           path: dist/Spoolhouse-*-${{ matrix.label }}.zip
@@ -63,7 +63,7 @@ jobs:
           if (-not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) { choco install innosetup -y --no-progress }
       - name: Build (tests, app, self-test, installer)
         run: .venv\Scripts\python.exe build_windows.py
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: windows
           path: dist/Spoolhouse-*-windows-setup.exe
