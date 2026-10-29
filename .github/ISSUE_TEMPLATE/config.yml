@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: A security problem
+    url: https://github.com/rizdem/spoolhouse/security/advisories/new
+    about: Please report security problems privately, not as an issue.
+  - name: Spoolhouse website
+    url: https://spoolhouse.app
+    about: Downloads, what's new, and how it works.
