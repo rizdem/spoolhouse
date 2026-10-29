@@ -54,19 +54,28 @@ let brandPick=null;  // what the chosen brand filament adds to the spool (cleare
 })();
 async function brandChosen(){
   const db=await filamentDb(), b=db.brands.find(x=>x.name.toLowerCase()===$("brandIn").value.trim().toLowerCase());
-  $("bMatWrap").hidden=!b; $("bCols").replaceChildren(); $("bInfo").hidden=true;
+  $("bMatWrap").hidden=!b; $("bCols").replaceChildren(); $("bInfo").hidden=true; $("bColQ").value="";
   if(!b){brandPick=null;return}
   const mats=[...new Set(b.filaments.map(f=>f.m))].sort((x,y)=>x==="PLA"?-1:y==="PLA"?1:x.localeCompare(y));
   $("bMat").replaceChildren(...mats.map(m=>{const o=document.createElement("option");o.value=m;o.textContent=m+(cfsCode(m)?"":" (pick the closest type below)");return o}));
   materialChosen();
 }
+// "brick", "matte blue": every word somewhere in the colour's name (or its material)
+function colourMatches(f,q){
+  const hay=(f.n+" "+f.m).toLowerCase();
+  return q.toLowerCase().split(/\s+/).filter(Boolean).every(w=>hay.includes(w));
+}
 function materialChosen(){
   const b=FILAMENT_DB.brands.find(x=>x.name.toLowerCase()===$("brandIn").value.trim().toLowerCase()); if(!b)return;
-  const fs=b.filaments.filter(f=>f.m===$("bMat").value);
-  $("bCols").replaceChildren(...fs.map(f=>{
-    const d=document.createElement("button");d.className="bcol";d.type="button";d.title=f.n;
-    d.innerHTML=`<span class="sw" style="background:#${f.c}"></span><span>${f.n.replace(/[<>&]/g,"")}</span>`;
-    d.onclick=()=>pickFilament(b.name,f,d); return d}));
+  const q=$("bColQ").value.trim();
+  // searching looks through all the brand's materials, so "brick" finds it whichever material it's under
+  const fs=q?b.filaments.filter(f=>colourMatches(f,q)):b.filaments.filter(f=>f.m===$("bMat").value);
+  $("bMat").disabled=!!q;
+  const esc=t=>t.replace(/[<>&]/g,"");
+  $("bCols").replaceChildren(...(fs.length?fs.map(f=>{
+    const d=document.createElement("button");d.className="bcol";d.type="button";d.title=`${f.m} · ${f.n}`;
+    d.innerHTML=`<span class="sw" style="background:#${f.c}"></span><span>${esc(f.n)}</span>`+(q?`<span class="bmat">${esc(f.m)}</span>`:"");
+    d.onclick=()=>pickFilament(b.name,f,d); return d}):[Object.assign(document.createElement("span"),{className:"mute",textContent:`No ${b.name} colour matches "${q}".`})]));
 }
 function pickFilament(brand,f,el){
   document.querySelectorAll(".bcol").forEach(x=>x.classList.toggle("sel",x===el));
@@ -81,4 +90,5 @@ function pickFilament(brand,f,el){
 }
 $("brandIn").onchange=brandChosen; $("brandIn").oninput=()=>{if(!$("brandIn").value)brandChosen()};
 $("bMat").onchange=materialChosen;
+$("bColQ").oninput=materialChosen;
 $("brandClear").onclick=()=>{$("brandIn").value="";brandChosen()};

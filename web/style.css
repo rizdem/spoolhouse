@@ -428,3 +428,4 @@ nav .verbtn:hover{background:none;text-decoration:underline}
 .bcol.sel{border-color:var(--accent,#ff7a3d);box-shadow:0 0 0 1px var(--accent,#ff7a3d)}
 .binfo{margin-top:10px;padding:10px 12px;border-radius:10px;background:rgba(255,122,61,.08);border:1px solid rgba(255,122,61,.25)}
 .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.bcol .bmat{font-size:11px;opacity:.65;border-left:1px solid var(--line);padding-left:6px}
