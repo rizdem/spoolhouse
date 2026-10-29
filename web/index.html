@@ -22,6 +22,23 @@
 <div class="cgrid">
 <div class="cmain">
   <div class="card">
+    <label class="h" for="brandIn">Brand <span class="mute" style="font-weight:400">(optional)</span></label>
+    <div class="row"><input type="text" id="brandIn" list="brandList" placeholder="e.g. Overture, eSUN, Polymaker" autocomplete="off" style="flex:1">
+      <button class="link" id="brandClear" type="button">Clear</button></div>
+    <datalist id="brandList"></datalist>
+    <div id="bMatWrap" hidden style="margin-top:10px">
+      <select id="bMat"></select>
+      <div class="bcols" id="bCols"></div>
+    </div>
+    <div class="binfo" id="bInfo" hidden><div id="bInfoTxt"></div>
+      <div class="grid2" style="margin-top:8px">
+        <div><div class="lbl">Print speed (from the label, optional)</div><input type="text" id="bSpeed" placeholder="e.g. 50-300 mm/s"></div>
+        <div><div class="lbl">Flow rate (optional)</div><input type="text" id="bFlow" placeholder="e.g. 0.98"></div>
+      </div></div>
+    <p class="mute" id="brandSrc" style="margin:8px 0 0"></p>
+  </div>
+
+  <div class="card">
     <label class="h" for="mat">Filament type</label>
     <select id="mat" class="matsel"></select>
     <p class="mute" style="margin:8px 0 0">For third-party filament, pick the matching <b>Generic</b> type.</p>
@@ -345,7 +362,8 @@
         <datalist id="brands"></datalist></div>
     </div>
     <div class="field"><label class="h">Colour</label>
-      <div class="row"><input type="color" id="ePicker"><input type="text" id="eHex" maxlength="7" style="max-width:120px"></div></div>
+      <div class="row"><input type="color" id="ePicker"><input type="text" id="eHex" maxlength="7" style="max-width:120px">
+        <input type="text" id="eCName" placeholder="Brand's colour name, e.g. Cement Gray" style="flex:1"></div></div>
     <div id="eStockNote"></div>
     <div class="grid2">
       <div class="field"><label class="h" for="eTotal">Spool size (g)</label><input type="number" id="eTotal" min="0" step="1">
@@ -363,6 +381,15 @@
       <div class="mute" id="eWeighOut" style="margin-top:8px"></div>
       <button class="link" id="eTareDefault" style="margin-top:6px">Use this empty-spool weight for new spools</button>
     </div>
+    <div class="field"><label class="h">Print settings <span class="mute" style="font-weight:400">(from the spool's label)</span></label>
+      <div class="grid4">
+        <div><div class="lbl">Nozzle °C</div><input type="text" id="eNozzle" placeholder="190-220"></div>
+        <div><div class="lbl">Bed °C</div><input type="text" id="eBed" placeholder="50-60"></div>
+        <div><div class="lbl">Speed</div><input type="text" id="eSpeed" placeholder="mm/s"></div>
+        <div><div class="lbl">Flow</div><input type="text" id="eFlow" placeholder="0.98"></div>
+      </div>
+      <button class="link" id="eFill" hidden style="margin-top:6px"></button>
+      <div class="mute" id="eFillMsg"></div></div>
     <div class="grid2">
       <div class="field"><label class="h" for="eCost">Cost</label><input type="number" id="eCost" min="0" step="0.01" placeholder="0.00"></div>
       <div class="field"><label class="h" for="eDate">Purchased</label><input type="date" id="eDate"></div>
@@ -378,6 +405,7 @@
 <script>window.CFS_CONFIG=__CONFIG__;</script>
 <script src="js/core.js?v=__VERSION__"></script>
 <script src="js/create.js?v=__VERSION__"></script>
+<script src="js/brands.js?v=__VERSION__"></script>
 <script src="js/inventory.js?v=__VERSION__"></script>
 <script src="js/printers.js?v=__VERSION__"></script>
 <script src="js/settings.js?v=__VERSION__"></script>

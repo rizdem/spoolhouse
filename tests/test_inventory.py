@@ -174,3 +174,15 @@ def test_import_spools_from_a_phone_adds_new_ones_only():
     assert (new["color"], new["remaining_g"], new["source"], new["created"]) == ("00FF00", 640.2, "Amazon", 1790000000)
     assert "222222" != inv.new_serial()  # never handed out again
     assert inv.import_spools(phone)["added"] == 0  # sending twice adds nothing
+
+
+def test_brand_details_are_kept_with_the_spool():
+    """The brand's colour name and print settings (picked when writing, or typed in) are saved and tidied."""
+    import inventory as inv
+    s = inv.save({"serial": "444444", "material": "00001", "color": "8C8C88", "total_g": 1000, "remaining_g": 1000,
+                  "brand": "Overture", "color_name": " Cement Gray ", "nozzle_temp": "190-220", "bed_temp": "50-60",
+                  "print_speed": "50-300 mm/s", "flow": "0.98", "tare_g": 155})
+    assert (s["color_name"], s["nozzle_temp"], s["bed_temp"], s["print_speed"], s["flow"], s["tare_g"]) == \
+        ("Cement Gray", "190-220", "50-60", "50-300 mm/s", "0.98", 155)
+    edited = inv.save({**s, "remaining_g": 600})
+    assert edited["nozzle_temp"] == "190-220"  # an edit keeps them

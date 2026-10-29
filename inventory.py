@@ -41,7 +41,10 @@ DB_PATH = os.path.join(DATA_DIR, "inventory.db")
 GRAMS = {"1kg": 1000, "750g": 750, "600g": 600, "500g": 500, "250g": 250}
 
 FIELDS = ("serial", "material", "color", "total_g", "remaining_g", "cost", "source",
-          "purchased", "notes", "uids", "tare_g", "brand")
+          "purchased", "notes", "uids", "tare_g", "brand",
+          # from the brand's details (picked when writing tags) or typed in: the brand's own colour name and
+          # its print settings, as text ("210" or "190-220", "300 mm/s", "0.98")
+          "color_name", "nozzle_temp", "bed_temp", "print_speed", "flow")
 
 # base plastic for Creality's own product lines (Generic materials are named after their type)
 CREALITY_TYPE = {
@@ -140,6 +143,9 @@ def _connect():
         con.execute("ALTER TABLE spools ADD COLUMN brand TEXT DEFAULT ''")
     if "deleted_at" not in cols:  # set when deleted; the spool sits in "Recently deleted" for 30 days
         con.execute("ALTER TABLE spools ADD COLUMN deleted_at REAL")
+    for col in ("color_name", "nozzle_temp", "bed_temp", "print_speed", "flow"):  # the brand's details
+        if col not in cols:
+            con.execute(f"ALTER TABLE spools ADD COLUMN {col} TEXT DEFAULT ''")
     con.execute("CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT)")
     # every serial ever handed out for writing, so a spool written but never added to stock
     # still can't have its serial reused
@@ -269,8 +275,9 @@ def _clean(rec):
     out["cost"] = round(float(out["cost"]), 2) if out["cost"] not in (None, "") else None
     out["tare_g"] = max(0, int(float(out["tare_g"]))) if out["tare_g"] not in (None, "") else None
     out["color"] = (out["color"] or "").lstrip("#").upper()[:6]
-    for k in ("serial", "material", "source", "purchased", "notes", "uids", "brand"):
-        out[k] = str(out[k] or "").strip()
+    for k in ("serial", "material", "source", "purchased", "notes", "uids", "brand",
+              "color_name", "nozzle_temp", "bed_temp", "print_speed", "flow"):
+        out[k] = str(out[k] or "").strip()[:200]
     return out
 
 

@@ -4,7 +4,10 @@
  if(s.w)weight=s.w; if(s.hex)setTimeout(()=>setColor(s.hex),0);}
 COLORS.forEach(([h,n])=>{const d=document.createElement("div");d.className="sw";d.style.background="#"+h;d.title=n;d.dataset.hex=h;d.onclick=()=>setColor(h);$("sw").appendChild(d)});
 WEIGHTS.forEach(w=>{const b=document.createElement("button");b.textContent=w.replace(/(\d)(k?g)$/,"$1 $2");b.dataset.w=w;b.onclick=()=>{weight=w;render()};$("wt").appendChild(b)});
-function setColor(h){h=h.replace("#","").toUpperCase();if(!/^[0-9A-F]{6}$/.test(h))return;$("hex").value=h;$("picker").value="#"+h;render()}
+function setColor(h,fromBrand){h=h.replace("#","").toUpperCase();if(!/^[0-9A-F]{6}$/.test(h))return;$("hex").value=h;$("picker").value="#"+h;
+  // a colour chosen by hand isn't the brand's colour any more: its name and details no longer apply
+  if(!fromBrand&&typeof brandPick!=="undefined"&&brandPick){brandPick=null;$("bInfo").hidden=true;document.querySelectorAll(".bcol").forEach(x=>x.classList.remove("sel"))}
+  render()}
 $("picker").oninput=e=>setColor(e.target.value);
 $("hex").oninput=e=>setColor(e.target.value);
 $("mat").onchange=render;
@@ -36,13 +39,14 @@ $("write").onclick=async()=>{
       await new Promise(res=>setTimeout(res,800));
     }
     status(`Done. ${n} tag${n>1?"s":""} written and verified: ${MATERIALS[body.material]}, #${body.color}, ${weight}, serial ${serial}.`,"ok");
-    lastWritten={...body,uids:uids.join(" ")}; $("addInv").hidden=false;
+    lastWritten={...body,uids:uids.join(" "),...(brandPick?{...brandPick,print_speed:$("bSpeed").value.trim(),flow:$("bFlow").value.trim()}:{})}; $("addInv").hidden=false;
   }catch(e){fail(e)}
   busy(false);
 };
 $("addInv").onclick=()=>{
   const w=lastWritten; $("addInv").hidden=true; show("inventory");
-  openEditor(null,{serial:w.serial,material:w.material,color:w.color,total_g:GRAMS[w.weight],remaining_g:GRAMS[w.weight],uids:w.uids,purchased:today()});
+  openEditor(null,{serial:w.serial,material:w.material,color:w.color,total_g:GRAMS[w.weight],remaining_g:GRAMS[w.weight],uids:w.uids,purchased:today(),
+    brand:w.brand,color_name:w.color_name,nozzle_temp:w.nozzle_temp,bed_temp:w.bed_temp,print_speed:w.print_speed,flow:w.flow,tare_g:w.tare_g});
 };
 $("read").onclick=async()=>{
   busy(true);status("Place the tag on the reader…");

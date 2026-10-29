@@ -420,3 +420,11 @@ nav .verbtn:hover{background:none;text-decoration:underline}
 .pairsheet .qr svg{display:block;image-rendering:pixelated}
 .pairmanual{font-size:13px;max-width:36ch;margin:6px auto 0;text-wrap:balance}
 .pairdone{font-size:17px;font-weight:600;color:var(--ok);margin:18px 0}
+
+/* Create: brand picker */
+.bcols{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;max-height:240px;overflow:auto}
+.bcol{display:flex;align-items:center;gap:6px;border:1px solid var(--line);background:transparent;color:inherit;border-radius:999px;padding:3px 10px 3px 4px;font:inherit;font-size:13px;cursor:pointer}
+.bcol .sw{width:18px;height:18px;margin:0;flex:none}
+.bcol.sel{border-color:var(--accent,#ff7a3d);box-shadow:0 0 0 1px var(--accent,#ff7a3d)}
+.binfo{margin-top:10px;padding:10px 12px;border-radius:10px;background:rgba(255,122,61,.08);border:1px solid rgba(255,122,61,.25)}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}

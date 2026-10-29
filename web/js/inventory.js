@@ -392,6 +392,8 @@ function openEditor(existing,fresh){
   $("eGross").value=""; $("eTare").value=s.tare_g??settings.tare_g; applyWeigh();
   $("eCost").value=s.cost??""; $("eDate").value=s.purchased||""; $("eSource").value=s.source||""; $("eNotes").value=s.notes||"";
   $("eBrand").value=s.brand||(isCreality($("eMat").value)?"Creality":"");
+  $("eCName").value=s.color_name||""; $("eNozzle").value=s.nozzle_temp||""; $("eBed").value=s.bed_temp||"";
+  $("eSpeed").value=s.print_speed||""; $("eFlow").value=s.flow||""; $("eFillMsg").textContent=""; eFillOffer();
   const bl=$("brands");bl.replaceChildren();[...new Set(["Creality",...spools.map(x=>x.brand).filter(Boolean)])].forEach(v=>{const o=document.createElement("option");o.value=v;bl.appendChild(o)});
   $("eDelete").hidden=!existing;
   // spools added before scanning was required can be linked to their tag here
@@ -423,11 +425,27 @@ $("eScan").onclick=async()=>{
   eScanning=false; $("eScan").textContent="Scan tag to link";
 };
 $("eClose").onclick=closeEditor;
+// "Fill in from <brand>": the brand's filament nearest this spool's type and colour
+async function eFillOffer(){
+  const brand=$("eBrand").value.trim(), db=await filamentDb();
+  const known=db.brands.some(b=>b.name.toLowerCase()===brand.toLowerCase());
+  $("eFill").hidden=!known; if(known)$("eFill").textContent=`Fill in from ${brand}'s details`;
+}
+$("eBrand").addEventListener("input",eFillOffer);
+$("eFill").onclick=async()=>{
+  const f=await closestFilament($("eBrand").value,$("eMat").value,$("eHex").value.replace("#",""));
+  if(!f){$("eFillMsg").textContent="No match found for that brand.";return}
+  const d=brandDetails($("eBrand").value.trim(),f);
+  $("eCName").value=d.color_name; $("eNozzle").value=d.nozzle_temp; $("eBed").value=d.bed_temp;
+  if(d.tare_g){$("eTare").value=d.tare_g; applyWeigh()}
+  $("eFillMsg").textContent=`From ${d.brand} ${f.m} · ${f.n}`+(f.c.toUpperCase()!==$("eHex").value.replace("#","").toUpperCase()?` (nearest colour, #${f.c})`:"")+". Check it matches the label.";
+};
 $("editor").onclick=e=>{if(e.target===$("editor"))closeEditor()};
 document.addEventListener("keydown",e=>{if(e.key!=="Escape")return; if(!$("editor").hidden)closeEditor(); else if(selecting)setSelecting(false)});
 $("eSave").onclick=async()=>{
   const rec={...editing,material:$("eMat").value,color:$("eHex").value,total_g:$("eTotal").value,remaining_g:$("eLeft").value,
-    cost:$("eCost").value,tare_g:$("eTare").value,purchased:$("eDate").value,source:$("eSource").value,notes:$("eNotes").value,brand:$("eBrand").value};
+    cost:$("eCost").value,tare_g:$("eTare").value,purchased:$("eDate").value,source:$("eSource").value,notes:$("eNotes").value,brand:$("eBrand").value,
+    color_name:$("eCName").value,nozzle_temp:$("eNozzle").value,bed_temp:$("eBed").value,print_speed:$("eSpeed").value,flow:$("eFlow").value};
   try{const {spool}=await call("/api/inv/save",rec);closeEditor();
     status(`Saved: ${groupName(spool)}, ${fmtG(spool.remaining_g)} g left.`,"ok","istatus");await loadInv()}
   catch(e){alert(e.message)}
