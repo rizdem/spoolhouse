@@ -154,3 +154,23 @@ def test_no_carry_over_into_a_custom_data_folder(tmp_path, monkeypatch):
     monkeypatch.setattr(inv, "OLD_DATA_DIR", str(old))
     (old / "inventory.db").write_text("would be copied if this were the default folder")
     assert inv.list_all() == []  # the test's own (custom) folder stays empty
+
+
+def test_import_spools_from_a_phone_adds_new_ones_only():
+    """A phone that was used on its own brings its spools across; ones already here (same serial) are skipped."""
+    import inventory as inv
+    inv.save({"serial": "111111", "material": "01001", "color": "FF0000", "total_g": 1000, "remaining_g": 500})
+    phone = [
+        {"serial": "111111", "material": "01001", "color": "FF0000", "total_g": 1000, "remaining_g": 300},  # already here
+        {"serial": "222222", "material": "06001", "color": "#00ff00", "total_g": 1000, "remaining_g": 640.25,
+         "cost": 17.5, "source": " Amazon ", "uids": "AA BB", "created": 1790000000},
+        {"serial": "", "uids": "", "material": "01001", "total_g": 1000, "remaining_g": 10},  # no tag: ignored
+    ]
+    r = inv.import_spools(phone)
+    assert r == {"added": 1, "skipped": ["111111"]}
+    spools = {s["serial"]: s for s in inv.list_all()}
+    assert spools["111111"]["remaining_g"] == 500  # the computer's own copy is kept
+    new = spools["222222"]
+    assert (new["color"], new["remaining_g"], new["source"], new["created"]) == ("00FF00", 640.2, "Amazon", 1790000000)
+    assert "222222" != inv.new_serial()  # never handed out again
+    assert inv.import_spools(phone)["added"] == 0  # sending twice adds nothing

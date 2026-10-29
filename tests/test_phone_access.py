@@ -192,3 +192,13 @@ def test_a_weighing_made_offline_allows_for_printing_since(server, spool):
     assert reply["spool"]["remaining_g"] == 615
     # without a time it's taken as it is (weighed just now)
     assert call(server, "/api/inv/save", {"id": s["id"], "remaining_g": 640}, token=token)[1]["spool"]["remaining_g"] == 640
+
+
+def test_a_paired_phone_can_bring_its_spools_across(server):
+    token, _ = pair(server)
+    spools = [{"serial": "333333", "material": "01001", "color": "FFFFFF", "total_g": 1000, "remaining_g": 800, "uids": "CC"}]
+    status, reply = call(server, "/api/inv/import", {"spools": spools}, token=token)
+    assert status == 200 and reply == {"added": 1, "skipped": []}
+    status, reply = call(server, "/api/inv/import", {"spools": "not a list"}, token=token)
+    assert "error" in reply
+    assert call(server, "/api/inv/import", {"spools": spools})[0] == 401  # not paired: no

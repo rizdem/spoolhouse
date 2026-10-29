@@ -28,7 +28,7 @@ import printer
 
 PORT = 8765
 APP_NAME = "Spoolhouse"
-APP_VERSION = "2.7.5"
+APP_VERSION = "2.8.0"
 # Your Buy Me a Coffee (or Ko-fi / GitHub Sponsors) page. Leave empty to hide the Support button.
 SUPPORT_URL = "https://buymeacoffee.com/rizdem"
 # the only pages the About box can open (the page asks by name, never by URL)
@@ -969,6 +969,10 @@ def light_api(path, body):
         return {"spool": inv.save(body)}
     if path == "/api/inv/settings":
         return {"settings": inv.set_settings(body) if body else inv.get_settings()}
+    if path == "/api/inv/import":
+        if not isinstance(body.get("spools"), list) or len(body["spools"]) > 5000:
+            raise IOError("Send a list of spools.")
+        return inv.import_spools(body["spools"])
     if path == "/api/inv/delete_many":
         ids = [int(i) for i in body.get("ids") or []]
         return {"deleted": inv.delete_many(ids), "ids": ids}

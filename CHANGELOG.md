@@ -3,6 +3,13 @@
 Versions follow [semantic versioning](https://semver.org): **major** for big or breaking
 changes, **minor** for new features, **patch** for bug fixes.
 
+## 2.8.0 - 2026-10-29
+
+### Added
+- Phones switching from "On this phone" to working with this computer can bring their spools across
+  (Spoolhouse for Android 1.0): each is added unless a spool with the same tag is already here, so nothing
+  is doubled, and their serial numbers are never handed out again.
+
 ## 2.7.5 - 2026-10-27
 
 ### Fixed

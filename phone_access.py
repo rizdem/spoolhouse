@@ -42,6 +42,7 @@ ALLOWED = {
     "/api/printers/list", "/api/printer/status", "/api/printer/history", "/api/printer/files",
     "/api/printer/job_plan", "/api/printer/check_file", "/api/printer/link", "/api/shopping",
     "/api/status",
+    "/api/inv/import",  # a phone switching from "On this phone" brings its spools across (2.8.0+)
 }
 
 STATE = {"server": None, "zeroconf": None, "info": None, "pairing": None, "error": None}

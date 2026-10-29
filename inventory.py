@@ -298,6 +298,29 @@ def save(rec):
         return dict(con.execute("SELECT * FROM spools WHERE id = ?", (sid,)).fetchone())
 
 
+def import_spools(spools):
+    """Spools sent from a phone that was used on its own ("On this phone"), when it switches to working
+    with this computer. Each is added unless a spool with the same serial is already here (its two tags
+    share a serial), so nothing is doubled; serials are noted so they're never handed out again.
+    Returns {"added": n, "skipped": [serial, ...]}."""
+    added, skipped, now = 0, [], time.time()
+    for rec in spools or []:
+        data = _clean(rec)
+        if not data["serial"] and not data["uids"]:
+            continue  # every spool comes from a tag; one with neither can't be matched or trusted
+        if data["serial"] and find_serial(data["serial"]):
+            skipped.append(data["serial"])
+            continue
+        created = float(rec.get("created") or now)
+        with _db() as con:
+            con.execute(f"INSERT INTO spools ({', '.join(data)}, created, updated) VALUES ({', '.join('?' * len(data))}, ?, ?)",
+                        (*data.values(), created, now))
+            if data["serial"]:
+                con.execute("INSERT OR IGNORE INTO serials (serial, issued) VALUES (?, ?)", (data["serial"], now))
+        added += 1
+    return {"added": added, "skipped": skipped}
+
+
 TRASH_DAYS = 30
 
 
