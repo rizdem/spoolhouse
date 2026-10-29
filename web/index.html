@@ -31,6 +31,24 @@
         <input type="search" id="bColQ" placeholder="Find a colour, e.g. brick, stone" autocomplete="off" style="flex:1.4"></div>
       <div class="bcols" id="bCols"></div>
     </div>
+    <button class="link" id="myOpen" type="button" style="margin-top:8px">Not in the list? Add your own colour</button>
+    <div class="binfo" id="myForm" hidden>
+      <b>Add your own colour</b> <span class="mute">(kept with your inventory, marked ★)</span>
+      <div class="grid2" style="margin-top:8px">
+        <div><div class="lbl">Brand</div><input type="text" id="myBrand" list="brandList"></div>
+        <div><div class="lbl">Material</div><input type="text" id="myMat" placeholder="PLA"></div>
+      </div>
+      <div class="row" style="margin-top:8px"><div style="flex:1"><div class="lbl">Colour name</div><input type="text" id="myName" placeholder="e.g. Rock PLA Jarrah Rock"></div>
+        <div><div class="lbl">Colour</div><div class="row"><input type="color" id="myPick"><input type="text" id="myHex" maxlength="7" style="max-width:90px"></div></div></div>
+      <div class="grid4" style="margin-top:8px">
+        <div><div class="lbl">Nozzle °C</div><input type="text" id="myNozzle" placeholder="190-220"></div>
+        <div><div class="lbl">Bed °C</div><input type="text" id="myBed" placeholder="50-60"></div>
+        <div><div class="lbl">Empty spool g</div><input type="number" id="mySw" min="0" step="1"></div>
+        <div><div class="lbl">Filament g</div><input type="number" id="myW" min="1" step="1" value="1000"></div>
+      </div>
+      <div class="row" style="margin-top:10px"><button class="btn pri" id="mySave" type="button">Save colour</button>
+        <button class="btn" id="myCancel" type="button">Cancel</button><span class="bad" id="myMsg"></span></div>
+    </div>
     <div class="binfo" id="bInfo" hidden><div id="bInfoTxt"></div>
       <div class="grid2" style="margin-top:8px">
         <div><div class="lbl">Print speed (from the label, optional)</div><input type="text" id="bSpeed" placeholder="e.g. 50-300 mm/s"></div>

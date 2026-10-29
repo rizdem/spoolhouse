@@ -969,6 +969,14 @@ def light_api(path, body):
         return {"spool": inv.save(body)}
     if path == "/api/inv/settings":
         return {"settings": inv.set_settings(body) if body else inv.get_settings()}
+    if path == "/api/brands/mine":
+        # your own colours for the brand picker (saved with the inventory, so the phone sees them too)
+        if body.get("action") == "save":
+            return {"filaments": inv.save_my_filament(body.get("filament") or {})}
+        if body.get("action") == "delete":
+            f = body.get("filament") or {}
+            return {"filaments": inv.delete_my_filament(f.get("brand", ""), f.get("m", ""), f.get("n", ""))}
+        return {"filaments": inv.my_filaments()}
     if path == "/api/inv/import":
         if not isinstance(body.get("spools"), list) or len(body["spools"]) > 5000:
             raise IOError("Send a list of spools.")

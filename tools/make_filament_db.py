@@ -31,8 +31,8 @@ def main():
             continue  # the CFS takes 1.75 mm
         hexes = f.get("color_hexes") or [f.get("color_hex")]
         hexes = [h.lstrip("#").upper()[:6] for h in hexes if h]
-        if not hexes:
-            continue
+        # some filaments have no colour code (e.g. multi-colour or speckled): keep them, the colour is set by hand
+        hexes = hexes or [""]
         brands.setdefault(f["manufacturer"].strip(), []).append({
             "m": f.get("material", "").strip(),        # material, e.g. PLA
             "n": f.get("name", "").strip(),            # the brand's colour name

@@ -186,3 +186,20 @@ def test_brand_details_are_kept_with_the_spool():
         ("Cement Gray", "190-220", "50-60", "50-300 mm/s", "0.98", 155)
     edited = inv.save({**s, "remaining_g": 600})
     assert edited["nozzle_temp"] == "190-220"  # an edit keeps them
+
+
+def test_your_own_colours():
+    import inventory as inv
+    import pytest
+    mine = inv.save_my_filament({"brand": "Overture", "m": "pla", "n": "Rock PLA Jarrah Rock", "c": "#8a4b2f",
+                                 "nozzle": "190-220", "bed": "50-60", "sw": 155, "w": 1000})
+    assert mine == [{"brand": "Overture", "m": "PLA", "n": "Rock PLA Jarrah Rock", "c": "8A4B2F",
+                     "nozzle": "190-220", "bed": "50-60", "sw": 155, "w": 1000}]
+    # saving the same brand, material and name again replaces it
+    inv.save_my_filament({"brand": "overture", "m": "PLA", "n": "rock pla jarrah rock", "c": "8A4B30", "sw": "abc"})
+    assert len(inv.my_filaments()) == 1 and inv.my_filaments()[0]["c"] == "8A4B30" and inv.my_filaments()[0]["sw"] is None
+    with pytest.raises(IOError):
+        inv.save_my_filament({"brand": "Overture", "m": "PLA", "n": ""})
+    with pytest.raises(IOError):
+        inv.save_my_filament({"brand": "Overture", "m": "PLA", "n": "X", "c": "not a colour"})
+    assert inv.delete_my_filament("OVERTURE", "pla", "Rock PLA Jarrah Rock") == []

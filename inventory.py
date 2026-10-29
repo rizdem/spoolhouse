@@ -17,6 +17,7 @@ import glob
 import hashlib
 import io
 import json
+import re
 import os
 import secrets
 import shutil
@@ -303,6 +304,54 @@ def save(rec):
                 f"({', '.join('?' * len(data))}, ?, ?)", (*data.values(), now, now))
             sid = cur.lastrowid
         return dict(con.execute("SELECT * FROM spools WHERE id = ?", (sid,)).fetchone())
+
+
+# ---------------------------------------------------------------- your own colours
+def _my_filaments():
+    try:
+        return json.loads(get_pref("my_filaments", "[]") or "[]")
+    except ValueError:
+        return []
+
+
+def my_filaments():
+    """Colours you added yourself (a brand's colour that isn't in the brand list), as the list's own entries."""
+    return _my_filaments()
+
+
+def _text(v, n):
+    return str(v or "").strip()[:n]
+
+
+def save_my_filament(f):
+    """Add (or replace: same brand, material and name) one of your own colours. Returns the list."""
+    brand, material, name = _text(f.get("brand"), 60), _text(f.get("m"), 20).upper(), _text(f.get("n"), 60)
+    if not (brand and material and name):
+        raise IOError("Give the brand, material and colour name.")
+    color = _text(f.get("c"), 7).lstrip("#").upper()
+    if color and not re.fullmatch(r"[0-9A-F]{6}", color):
+        raise IOError("The colour should be like FF8800.")
+    def num(k, lo, hi):
+        try:
+            v = float(f.get(k))
+        except (TypeError, ValueError):
+            return None
+        return int(v) if lo <= v <= hi else None
+    entry = {"brand": brand, "m": material, "n": name, "c": color,
+             "nozzle": _text(f.get("nozzle"), 20), "bed": _text(f.get("bed"), 20),
+             "sw": num("sw", 0, 2000), "w": num("w", 1, 10000)}
+    key = lambda x: (x["brand"].lower(), x["m"].lower(), x["n"].lower())
+    mine = [x for x in _my_filaments() if key(x) != key(entry)] + [entry]
+    mine.sort(key=key)
+    set_pref("my_filaments", json.dumps(mine))
+    return mine
+
+
+def delete_my_filament(brand, material, name):
+    k = (str(brand).strip().lower(), str(material).strip().lower(), str(name).strip().lower())
+    mine = [x for x in _my_filaments() if (x["brand"].lower(), x["m"].lower(), x["n"].lower()) != k]
+    set_pref("my_filaments", json.dumps(mine))
+    return mine
 
 
 def import_spools(spools):
