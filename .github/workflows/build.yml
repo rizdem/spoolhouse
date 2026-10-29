@@ -18,7 +18,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { arch: arm64, label: apple-silicon, runner: macos-latest }
+          - { arch: arm64, label: apple-silicon, runner: macos-15 }
           - { arch: intel, label: intel, runner: macos-26-intel }
     runs-on: ${{ matrix.runner }}
     steps:
