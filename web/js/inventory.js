@@ -26,7 +26,7 @@ function renderAlerts(){
   const list=$("alertList");list.replaceChildren();
   for(const gr of low){
     const a=el("div","alert");const dot=el("div","dot");dot.style.background="#"+(gr.color||"888888");a.appendChild(dot);
-    a.appendChild(el("div","what",`${colorName(gr.color)} ${matName(gr.material).replace(/^Generic /,"")}`));
+    a.appendChild(el("div","what",`${spoolColor(gr.spools.find(s=>s.color_name)||gr)} ${matName(gr.material).replace(/^Generic /,"")}`));
     const n=gr.spools.filter(s=>s.remaining_g>0).length;
     a.appendChild(el("div","qty"+(gr.left?"":" out"),gr.left?`${gr.left} g left${n>1?` across ${n} spools`:""}`:"Out of stock"));
     const pick=gr.spools.filter(s=>s.remaining_g>0).sort((x,y)=>x.remaining_g-y.remaining_g)[0]||gr.spools[0];
@@ -38,7 +38,7 @@ $("lowG").onchange=async()=>{try{settings=(await call("/api/inv/settings",{low_g
 const equiv=s=>s.total_g?s.remaining_g/s.total_g:0;
 const fmtSpools=n=>{const r=Math.round(n*10)/10;return (Number.isInteger(r)?r:r.toFixed(1))+" spool"+(r===1?"":"s")};
 const groupKey=s=>s.material+"|"+s.color;
-const groupName=s=>`${colorName(s.color)} ${matName(s.material).replace(/^Generic /,"")}`;
+const groupName=s=>`${spoolColor(s)} ${matName(s.material).replace(/^Generic /,"")}`;
 let mode=store.get("invMode","spools"), groupFilter=null;
 // ---------- filters
 // base plastic for Creality's own product lines (Generic ones are named after their type)
@@ -180,7 +180,7 @@ function renderRows(rows,list,showGroups){
     const mid=el("div"), nm=el("div","name",matName(s.material).replace(/^Generic /,""));
     const ip=inPrinter[s.id]; if(ip) nm.appendChild(printerChip(ip.printing?`Printing · ${ip.slot}`:`In printer · ${ip.slot}`,ip.printing));
     mid.appendChild(nm);
-    mid.appendChild(el("div","meta",[brandOf(s)!=="No brand"&&brandOf(s),colorName(s.color),s.source,s.purchased,s.serial&&"serial "+s.serial].filter(Boolean).join(" · ")));it.appendChild(mid);
+    mid.appendChild(el("div","meta",[brandOf(s)!=="No brand"&&brandOf(s),spoolColor(s),s.source,s.purchased,s.serial&&"serial "+s.serial].filter(Boolean).join(" · ")));it.appendChild(mid);
     const lv=el("div");const bar=el("div","bar"+(pct<=0?" out":pct<.2?" low":""));const fill=el("i");fill.style.width=Math.round(pct*100)+"%";bar.appendChild(fill);
     lv.appendChild(bar);lv.appendChild(el("div","left",`${fmtG(s.remaining_g)} / ${fmtG(s.total_g)} g`));it.appendChild(lv);
     it.appendChild(el("div","price",money(s.cost)));
@@ -298,13 +298,13 @@ async function loadShop(action){
     const sel=$("shAdd"), on=new Set(shopItems.filter(i=>!i.hidden).map(shopKey));
     sel.replaceChildren(new Option("Add another filament…",""));
     d.filaments.filter(f=>!on.has(f.key)).sort((a,b)=>a.name.localeCompare(b.name))
-      .forEach(f=>sel.appendChild(new Option(`${f.name.replace(/^Generic /,"")} · ${colorName(f.color)}`,f.key)));
+      .forEach(f=>sel.appendChild(new Option(`${f.name.replace(/^Generic /,"")} · ${f.color_name||colorName(f.color)}`,f.key)));
     sel.value="";
     if(!$("shopSheet").hidden) renderShop();
   }catch(e){}
 }
 function shopLine(i){
-  const what=`${i.name.replace(/^Generic /,"")}, ${colorName(i.color)}`+(i.brand&&!i.name.includes(i.brand)?` (${i.brand})`:"");
+  const what=`${i.name.replace(/^Generic /,"")}, ${i.color_name||colorName(i.color)}`+(i.brand&&!i.name.includes(i.brand)?` (${i.brand})`:"");
   const size=i.size_g>=1000?`${i.size_g/1000} kg`:`${i.size_g} g`;
   const last=[i.price!=null&&`last ${money(i.price)}`,i.shop&&`at ${i.shop}`].filter(Boolean).join(" ");
   return `- ${i.qty} x ${what}, ${size}`+(last?` - ${last}`:"");
@@ -322,7 +322,7 @@ function renderShop(){
   for(const i of rows){
     const r=el("div","shrow"+(i.hidden?" hid":"")), d=el("div","dot"); d.style.background="#"+i.color; r.appendChild(d);
     const t=el("div"); t.style.minWidth="0";
-    t.appendChild(el("div","sn",`${i.name.replace(/^Generic /,"")} · ${colorName(i.color)}`+(i.brand&&!i.name.includes(i.brand)?` · ${i.brand}`:"")));
+    t.appendChild(el("div","sn",`${i.name.replace(/^Generic /,"")} · ${i.color_name||colorName(i.color)}`+(i.brand&&!i.name.includes(i.brand)?` · ${i.brand}`:"")));
     const m=el("div","sm"); m.appendChild(el("span",i.reason==="out"?"out":i.reason==="low"?"low":null,i.reason==="out"?"Out of stock":i.reason==="low"?`${fmtG(i.remaining_g)} g left`:"Added by you"));
     m.appendChild(document.createTextNode([i.price!=null&&` · last ${money(i.price)}`,i.shop&&` at ${i.shop}`,i.bought&&` (${i.bought})`].filter(Boolean).join("")));
     t.appendChild(m); r.appendChild(t);

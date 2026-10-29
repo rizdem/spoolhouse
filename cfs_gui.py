@@ -947,6 +947,7 @@ def light_api(path, body):
         groups = inv.filament_groups()
         return {"items": inv.shopping_list(cfs.MATERIALS),
                 "filaments": [{"key": k, "material": g["material"], "color": g["color"],
+                               "color_name": next((sp["color_name"] for sp in g["spools"] if sp.get("color_name")), ""),
                                "name": cfs.MATERIALS.get(g["material"], g["material"])} for k, g in groups.items()]}
     if path == "/api/shopping/email":
         # only ever opens a new email with the list in it

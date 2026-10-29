@@ -1003,6 +1003,7 @@ def shopping_list(materials):
         priced = next((sp for sp in newest if sp["cost"] is not None), None)
         items.append({
             "key": key, "material": g["material"], "color": g["color"],
+            "color_name": next((sp["color_name"] for sp in newest if sp.get("color_name")), ""),
             "name": materials.get(g["material"], g["material"]),
             "brand": next((sp["brand"] for sp in newest if sp["brand"]), ""),
             "size_g": newest[0]["total_g"], "remaining_g": round(g["remaining"], 1),

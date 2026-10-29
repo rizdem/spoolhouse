@@ -19,6 +19,8 @@ const CUR={GB:"GBP",US:"USD",AU:"AUD",NZ:"NZD",CA:"CAD",IE:"EUR",DE:"EUR",FR:"EU
 const fmtG=x=>{x=+x||0;return Math.abs(x)<10&&Math.round(x)!==x?x.toFixed(1):String(Math.round(x))};
 const money=x=>x==null?"—":new Intl.NumberFormat(undefined,{style:"currency",currency:CUR}).format(x);
 const colorName=h=>{const c=COLORS.find(x=>x[0]===h);return c?c[1]:"#"+h};
+// a spool's colour as its label says it ("Cement Gray", "Rock PLA Jarrah Rock"), when it has the brand's name
+const spoolColor=s=>(s&&s.color_name)||colorName(s&&s.color);
 const matName=id=>MATERIALS[id]||id||"Unknown";
 const today=()=>new Date().toISOString().slice(0,10);
 let weight="1kg";

@@ -109,7 +109,7 @@ function fitRow(it){
     const s=it.stock, line=el("div","fstock");
     if(!s.found){line.classList.add("none");line.textContent=it.status==="short"?"No other spool of this in your inventory":"Not in your inventory"}
     else{
-      const name=`${colorName(s.color)} ${matName(s.material).replace(/^Generic /,"")}${s.brand&&!matName(s.material).includes(s.brand)?" · "+s.brand:""}`;
+      const name=`${spoolColor(s)} ${matName(s.material).replace(/^Generic /,"")}${s.brand&&!matName(s.material).includes(s.brand)?" · "+s.brand:""}`;
       const many=s.spools>1?` (${s.spools} spools, ${fmtG(s.total_g)} g in all)`:"";
       line.classList.add(s.enough?"yes":"part");
       line.textContent=`${it.status==="short"?"Another spool in stock":"In stock"}: ${name} · ${fmtG(s.best_g)} g${many} · ${s.enough?"enough"+(it.status==="short"?" to swap in":""):`not enough (needs ${fmtG(s.need_g)} g)`}`;
