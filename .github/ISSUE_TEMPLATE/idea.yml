@@ -1,0 +1,11 @@
+name: An idea
+description: Something Spoolhouse could do, or do better.
+labels: [idea]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like it to do?
+      description: And what you'd use it for. Check ROADMAP.md first, it may already be planned.
+    validations:
+      required: true

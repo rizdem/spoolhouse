@@ -1,0 +1,13 @@
+# Weekly checks for newer versions of the Python libraries and GitHub Actions the app uses; known
+# security problems get their own pull requests straight away (Dependabot security updates).
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly

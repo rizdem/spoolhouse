@@ -4,6 +4,10 @@ on:
   push:
   pull_request:
 
+# tests only read the code (and pull requests from forks never get write access or secrets)
+permissions:
+  contents: read
+
 jobs:
   test:
     strategy:

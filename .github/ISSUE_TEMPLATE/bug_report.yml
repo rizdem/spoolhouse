@@ -1,0 +1,37 @@
+name: Something isn't working
+description: A bug, a crash, or Spoolhouse doing something it shouldn't.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Spoolhouse version
+      description: Click the version number at the bottom of the sidebar.
+      placeholder: "2.7.5"
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: On
+      options: [Mac (Apple Silicon), Mac (Intel), Windows, Android phone app]
+    validations:
+      required: true
+  - type: input
+    id: printer
+    attributes:
+      label: Printer and NFC reader
+      placeholder: "K2 Pro with CFS, ACR122U"
+  - type: textarea
+    id: log
+    attributes:
+      label: Log (optional)
+      description: The last 30 lines or so of Spoolhouse.log (Mac ~/Library/Logs/Spoolhouse, Windows %LOCALAPPDATA%\Spoolhouse).
+      render: text
