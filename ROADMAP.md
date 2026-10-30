@@ -52,7 +52,7 @@ Status: ✅ done · 🚧 in progress · 📋 planned
 | ✅ | **Automatic builds (GitHub Actions)** | A version tag builds the Apple Silicon, Intel and Windows downloads, self-tests them and drafts the release. |
 | ✅ | **Android companion app** | Use the phone's NFC to scan spools at the shelf or printer and send them over Wi-Fi to the Mac/Windows app, so there's one inventory (Spoolhouse for Android, paired with Phone access). Needs a phone with an NXP NFC chip: many phones, including many Samsung models, can't read MIFARE Classic tags. |
 | ✅ | **Standalone Android app** | "On this phone": its own inventory and printers, filament off the right spools after each print, alerts; switch to or from working with a computer in Settings (Spoolhouse for Android 1.0, desktop 2.8.0). |
-| ✅ | **Brands** | Pick a maker's filament when writing tags (from SpoolmanDB), search colours by name, add your own; spools keep the brand's colour name, temperatures and empty spool weight (2.9.0, Android 1.1). |
+| ✅ | **Brands** | Pick a maker's filament when writing tags (from SpoolmanDB), search colours by name, add your own; spools keep the brand's colour name, temperatures and empty spool weight (2.9.1, Android 1.1). |
 
 ## More printers and filament
 

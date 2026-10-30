@@ -3,7 +3,7 @@
 Versions follow [semantic versioning](https://semver.org): **major** for big or breaking
 changes, **minor** for new features, **patch** for bug fixes.
 
-## 2.9.0 - 2026-10-29
+## 2.9.1 - 2026-10-30
 
 ### Added
 - Pick a brand's filament when writing tags (Create): 86 brands and over 7,500 filaments, from SpoolmanDB.
