@@ -26,6 +26,14 @@ def valid_host(host):
     return bool(host) and bool(_HOST_RE.match(host))
 
 
+def _moonraker(host, path):
+    """A Moonraker URL on the printer: always the printer's own port and a fixed path, and only for an
+    address that looks like one (an IP or a name), so a stored host can never point a request elsewhere."""
+    if not valid_host(host):
+        raise IOError(f"That doesn't look like a printer address: {host!r}")
+    return f"http://{host}:{MOONRAKER_PORT}{path}"
+
+
 def _hex6(color):
     # printer streams "#0RRGGBB" (a pad digit first) or "#RRGGBB"; multi-colour spools are "a,b"
     c = (color or "").split(",")[0].lstrip("#")
@@ -108,7 +116,7 @@ def fetch_history(host, limit=50, start=0):
         raise IOError("Enter the printer's IP address first.")
     q = urllib.parse.urlencode({"limit": int(limit), "start": int(start), "order": "desc"})
     try:
-        with urllib.request.urlopen(f"http://{host}:{MOONRAKER_PORT}/server/history/list?{q}",
+        with urllib.request.urlopen(_moonraker(host, f"/server/history/list?{q}"),
                                     timeout=TIMEOUT + 2) as r:
             data = json.load(r)["result"]
     except Exception as e:
@@ -133,7 +141,7 @@ def fetch_history(host, limit=50, start=0):
     for job in jobs:
         if job["status"] == "in_progress":
             try:
-                with urllib.request.urlopen(f"http://{host}:{MOONRAKER_PORT}/printer/objects/query?print_stats",
+                with urllib.request.urlopen(_moonraker(host, f"/printer/objects/query?print_stats"),
                                             timeout=TIMEOUT) as r:
                     ps = json.load(r)["result"]["status"]["print_stats"]
                 job["mm"], job["duration"] = ps.get("filament_used") or 0, ps.get("print_duration") or 0
@@ -145,7 +153,7 @@ def fetch_history(host, limit=50, start=0):
 def fetch_job(host):
     """The current/last job from Moonraker: state, filament used so far (mm) and its job id."""
     def get(path):
-        with urllib.request.urlopen(f"http://{host}:{MOONRAKER_PORT}{path}", timeout=TIMEOUT) as r:
+        with urllib.request.urlopen(_moonraker(host, path), timeout=TIMEOUT) as r:
             return json.load(r)["result"]
     try:
         status = get("/printer/objects/query?print_stats&virtual_sdcard")["status"]
@@ -178,8 +186,8 @@ def _time_left(host, filename, progress, secs):
     """Seconds left: from the slicer's estimate when the file has one, else worked out from progress."""
     if filename not in _ESTIMATES:
         try:
-            with urllib.request.urlopen(f"http://{host}:{MOONRAKER_PORT}/server/files/metadata?filename="
-                                        f"{urllib.parse.quote(filename)}", timeout=TIMEOUT) as r:
+            url = _moonraker(host, f"/server/files/metadata?filename={urllib.parse.quote(filename)}")
+            with urllib.request.urlopen(url, timeout=TIMEOUT) as r:
                 _ESTIMATES[filename] = json.load(r)["result"].get("estimated_time")
         except Exception:
             _ESTIMATES[filename] = None
@@ -194,7 +202,7 @@ def _time_left(host, filename, progress, secs):
 def job_total(host, job_id):
     """Final filament used by a finished job, from the history (None if not found)."""
     try:
-        with urllib.request.urlopen(f"http://{host}:{MOONRAKER_PORT}/server/history/job?uid={urllib.parse.quote(str(job_id))}",
+        with urllib.request.urlopen(_moonraker(host, f"/server/history/job?uid={urllib.parse.quote(str(job_id))}"),
                                     timeout=TIMEOUT) as r:
             return float(json.load(r)["result"]["job"].get("filament_used") or 0)
     except Exception:
@@ -251,7 +259,7 @@ def fetch_plan(host, filename):
         return None
     if filename in _PLAN_CACHE:
         return _PLAN_CACHE[filename]
-    url = f"http://{host}:{MOONRAKER_PORT}/server/files/gcodes/{urllib.parse.quote(filename)}"
+    url = _moonraker(host, f"/server/files/gcodes/{urllib.parse.quote(filename)}")
     req = urllib.request.Request(url, headers={"Range": "bytes=-300000"})  # the summary is at the end
     try:
         with urllib.request.urlopen(req, timeout=TIMEOUT + 6) as r:
@@ -266,7 +274,7 @@ def fetch_plan(host, filename):
 def list_files(host, limit=30):
     """Print files on the printer, newest first."""
     try:
-        with urllib.request.urlopen(f"http://{host}:{MOONRAKER_PORT}/server/files/list?root=gcodes",
+        with urllib.request.urlopen(_moonraker(host, f"/server/files/list?root=gcodes"),
                                     timeout=TIMEOUT + 2) as r:
             files = json.load(r)["result"]
     except Exception as e:
@@ -301,7 +309,7 @@ def parse_tag_record(rec):
 def fetch_box(host):
     """Klipper's 'box' object (the CFS) over Moonraker, read-only; {} if the printer doesn't report it."""
     try:
-        with urllib.request.urlopen(f"http://{host}:{MOONRAKER_PORT}/printer/objects/query?box",
+        with urllib.request.urlopen(_moonraker(host, f"/printer/objects/query?box"),
                                     timeout=TIMEOUT) as r:
             return json.load(r)["result"]["status"].get("box") or {}
     except Exception:

@@ -107,3 +107,14 @@ def test_time_left_from_the_printers_screen():
     kept = {"state": "printing", "left_secs": 780, "progress": 0.3}
     cfs_gui.screen_time(kept, {})  # the printer didn't say: keep the estimate
     assert kept["left_secs"] == 780
+
+
+def test_requests_only_go_to_a_printer_address():
+    """Every Moonraker request is built from a checked address, a fixed port and a fixed path."""
+    assert printer._moonraker("192.168.1.50", "/server/files/list") == f"http://192.168.1.50:{printer.MOONRAKER_PORT}/server/files/list"
+    assert printer._moonraker("k2.local", "/x").startswith("http://k2.local:")
+    for bad in ("", "evil.com/@x", "http://evil.com", "1.2.3.4:8080", "a b", "host#frag", "x\r\nHeader: y"):
+        with pytest.raises(IOError):
+            printer._moonraker(bad, "/x")
+        with pytest.raises(IOError):
+            printer.fetch_job(bad)

@@ -3,6 +3,13 @@
 Versions follow [semantic versioning](https://semver.org): **major** for big or breaking
 changes, **minor** for new features, **patch** for bug fixes.
 
+## 2.9.2 - 2026-10-30
+
+### Fixed
+- Security hardening from GitHub's code scanning: every request to a printer now checks the printer's address
+  first (an IP address or name only, on the printer's own port), and the app's built-in page only ever
+  answers with file types from a fixed list.
+
 ## 2.9.1 - 2026-10-30
 
 ### Added

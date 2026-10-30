@@ -22,6 +22,7 @@ def server():
 def call(port, path, body=None, token=None, fingerprint=None):
     """Like the phone: HTTPS to the computer, trusting only the certificate in the QR code."""
     ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+    ctx.minimum_version = ssl.TLSVersion.TLSv1_2  # as the phone: nothing older
     ctx.check_hostname = False
     ctx.verify_mode = ssl.CERT_NONE  # checked by fingerprint below, as the phone does
     with socket.create_connection(("127.0.0.1", port), timeout=10) as raw, ctx.wrap_socket(raw) as s:

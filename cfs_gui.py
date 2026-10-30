@@ -10,7 +10,6 @@ Your browser opens at http://127.0.0.1:8765. Ctrl+C in the Terminal to quit.
 Quit SimplyPrint NFC Agent first so it isn't holding the reader.
 """
 import json
-import mimetypes
 import os
 import sys
 import socketserver
@@ -28,7 +27,7 @@ import printer
 
 PORT = 8765
 APP_NAME = "Spoolhouse"
-APP_VERSION = "2.9.1"
+APP_VERSION = "2.9.2"
 # Your Buy Me a Coffee (or Ko-fi / GitHub Sponsors) page. Leave empty to hide the Support button.
 SUPPORT_URL = "https://buymeacoffee.com/rizdem"
 # the only pages the About box can open (the page asks by name, never by URL)
@@ -1055,6 +1054,12 @@ def page():
             .replace("__APP_NAME__", APP_NAME))
 
 
+STATIC_TYPES = {".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8",
+                ".js": "text/javascript; charset=utf-8", ".json": "application/json", ".svg": "image/svg+xml",
+                ".png": "image/png", ".jpg": "image/jpeg", ".webp": "image/webp", ".ico": "image/x-icon",
+                ".woff2": "font/woff2", ".ttf": "font/ttf", ".txt": "text/plain; charset=utf-8"}
+
+
 class Handler(BaseHTTPRequestHandler):
     def log_message(self, *a):
         pass
@@ -1076,9 +1081,8 @@ class Handler(BaseHTTPRequestHandler):
         file = web_file(path)
         if file:
             with open(file, "rb") as f:
-                ctype = mimetypes.guess_type(file)[0] or "application/octet-stream"
-                if ctype.startswith("text/") or ctype.endswith("javascript"):
-                    ctype += "; charset=utf-8"
+                # the page's own files only, so the type always comes from this fixed list
+                ctype = STATIC_TYPES.get(os.path.splitext(file)[1].lower(), "application/octet-stream")
                 return self._send(200, f.read(), ctype, cache=False)
         self._send(404, {"error": "not found"})
 
