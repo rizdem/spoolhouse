@@ -22,8 +22,8 @@ jobs:
           - { arch: intel, label: intel, runner: macos-26-intel }
     runs-on: ${{ matrix.runner }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
       - name: Python environment (Apple Silicon)
         if: matrix.arch == 'arm64'
         run: |
@@ -42,7 +42,7 @@ jobs:
         run: |
           APP=dist/Spoolhouse.app; [ "${{ matrix.arch }}" = intel ] && APP=dist/intel/Spoolhouse.app
           "$APP/Contents/MacOS/Spoolhouse" --self-test
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: mac-${{ matrix.label }}
           path: dist/Spoolhouse-*-${{ matrix.label }}.zip
@@ -51,8 +51,8 @@ jobs:
   windows:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
       - name: Python environment
         run: |
           uv venv --python 3.12 --python-preference only-managed .venv
@@ -63,7 +63,7 @@ jobs:
           if (-not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) { choco install innosetup -y --no-progress }
       - name: Build (tests, app, self-test, installer)
         run: .venv\Scripts\python.exe build_windows.py
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: windows
           path: dist/Spoolhouse-*-windows-setup.exe
@@ -76,8 +76,8 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           path: out
           merge-multiple: true

@@ -3,6 +3,13 @@
 Versions follow [semantic versioning](https://semver.org): **major** for big or breaking
 changes, **minor** for new features, **patch** for bug fixes.
 
+## 2.9.3 - 2026-10-31
+
+### Changed
+- Updated the NFC reader library (pyscard 2.3.2).
+- The release build uses the current versions of GitHub's actions, each pinned to an exact, checked
+  release, so a changed action can't slip into the build.
+
 ## 2.9.2 - 2026-10-30
 
 ### Fixed

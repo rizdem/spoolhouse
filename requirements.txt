@@ -1,4 +1,4 @@
-pyscard>=2.3
+pyscard>=2.3.2
 cryptography>=43; sys_platform != "darwin" or platform_machine != "x86_64"
 # cryptography 49+ has no Intel Mac builds; 48.0.1 is the last (universal2, macOS 10.9+). Spoolhouse only uses AES.
 cryptography>=43,<49; sys_platform == "darwin" and platform_machine == "x86_64"

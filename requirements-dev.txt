@@ -1,4 +1,4 @@
 -r requirements.txt
-pytest>=8
+pytest>=9.2
 pyinstaller>=6
 pyobjc-framework-CoreText; sys_platform == 'darwin'  # branding scripts only
