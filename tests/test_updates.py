@@ -204,3 +204,11 @@ def test_mac_helper_swaps_the_app_once_it_has_quit_and_keeps_it_if_anything_fail
 def test_force_offers_the_same_version_for_testing(monkeypatch):
     monkeypatch.setattr(updates, "FORCE", True)
     assert updates.check("2.10.0", fetch=release("2.10.0"))["available"]
+
+
+def test_an_answer_from_before_2_10_is_asked_again(monkeypatch):
+    updates.inv.set_pref("update_checked", str(updates.time.time()))  # checked just now...
+    updates.inv.set_pref("update_latest", json.dumps({"version": "2.9.3", "url": "u", "published": ""}))  # ...by 2.9
+    assert updates.stale() and updates.due()
+    updates.check("2.10.0", fetch=lambda current: {"version": "2.10.1", "url": "u", "published": "", "assets": []})
+    assert not updates.stale() and not updates.due()

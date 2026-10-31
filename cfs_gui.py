@@ -847,6 +847,8 @@ def light_api(path, body):
     if path == "/api/update/status":
         if "auto" in body:
             updates.set_auto(bool(body["auto"]))
+        if updates.stale():  # an answer from before 2.10 can't be installed from: ask GitHub again now
+            return check_for_update(force=True)
         return updates.status(APP_VERSION)
     if path == "/api/update/check":
         if body.get("unskip"):  # checking by hand shows a skipped version again
@@ -860,6 +862,8 @@ def light_api(path, body):
     if path == "/api/update/install":
         # only ever the release GitHub gave us, checked in updates; the page can't choose what's installed
         st = updates.status(APP_VERSION)
+        if not st["can_install"] and updates.stale():
+            st = check_for_update(force=True)
         if not st["can_install"] or "quit" not in NATIVE:
             raise ValueError("This copy of Spoolhouse can't update itself: use Download instead.")
         updates.start_install(st["latest"], NATIVE["quit"], os.path.join(inv.DATA_DIR, "update.log"))

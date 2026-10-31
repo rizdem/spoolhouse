@@ -82,7 +82,9 @@ def check(current, fetch=fetch_latest):
     """Ask GitHub now and remember the answer. Returns status()."""
     inv.set_pref("update_checked", str(time.time()))
     try:
-        inv.set_pref("update_latest", json.dumps(fetch(current)))
+        latest = fetch(current)
+        latest.setdefault("assets", [])  # always saved from 2.10 on: an answer without it is from an older version
+        inv.set_pref("update_latest", json.dumps(latest))
         inv.set_pref("update_error", "")
     except IOError as e:
         inv.set_pref("update_error", str(e))
@@ -90,7 +92,17 @@ def check(current, fetch=fetch_latest):
 
 
 def due():
-    return auto_enabled() and time.time() - float(inv.get_pref("update_checked", "0") or 0) >= CHECK_EVERY
+    return auto_enabled() and (time.time() - float(inv.get_pref("update_checked", "0") or 0) >= CHECK_EVERY or stale())
+
+
+def stale():
+    """The remembered answer came from a version before 2.10, which didn't keep the release's files: ask again
+    (otherwise a newer version could only be downloaded by hand until the next daily check)."""
+    try:
+        latest = json.loads(inv.get_pref("update_latest", "") or "null")
+    except ValueError:
+        return True
+    return bool(latest) and "assets" not in latest
 
 
 def skip(version):
