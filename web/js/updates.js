@@ -12,11 +12,11 @@ function showUpdate(s){
     $("updTitle").textContent=`Spoolhouse ${v} is available`;
     const d=s.latest.published?new Date(s.latest.published).toLocaleDateString([], {day:"numeric",month:"long",year:"numeric"}):"";
     $("updText").textContent=`You have ${s.current}.`+(d?` Released ${d}.`:"")+(s.can_install
-      ?" Install it now: Spoolhouse downloads it, checks it and restarts. Your data is kept."
+      ?" Update downloads and installs it, then Spoolhouse restarts on the new version. Your data is kept."
       :(IS_WIN?" Download and run the new installer. Your data is kept.":" Download it from GitHub, quit Spoolhouse and replace the app in Applications. Your data is kept."));
+    // Update / Later / Skip this update; a copy that can't replace itself offers Download (the release page) instead
     $("updInstall").hidden=!s.can_install;
-    $("updGet").textContent=s.can_install?"What's new":"Download";
-    $("updGet").classList.toggle("pri",!s.can_install);
+    $("updGet").hidden=s.can_install;
     if(s.install&&s.install.stage)showInstall(s.install);
   }
   const st=$("upStatus"); if(!st)return;
@@ -36,6 +36,7 @@ $("upCheck").onclick=async()=>{
   $("upCheck").disabled=false;
 };
 $("updGet").onclick=()=>call("/api/update/open").catch(()=>{});
+$("updNotes").onclick=()=>call("/api/update/open").catch(()=>{});
 // installing: download, check, restart; the card shows how it's going until the app closes
 let installTimer=null;
 function showInstall(p){
