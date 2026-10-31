@@ -76,7 +76,7 @@ def _open_file():
 
 
 cfs_gui.NATIVE.update(settings=_native_settings, choose_folder=_choose_folder, save_file=_save_file,
-                      open_file=_open_file, notify=ui.notify, show=ui.show_window)
+                      open_file=_open_file, notify=ui.notify, show=ui.show_window, quit=ui.quit_now)
 
 
 # ---------------------------------------------------------------- start

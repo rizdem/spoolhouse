@@ -86,6 +86,12 @@ def on_quit():
     pass  # nothing extra: the menu bar item goes with the app
 
 
+def quit_now():
+    """Quit for real, from any thread (e.g. so an update can replace the app)."""
+    APP["quitting"] = True
+    AppHelper.callAfter(lambda: AppKit.NSApp.terminate_(None))
+
+
 class CFSAppDelegate(AppKit.NSObject):
     def applicationShouldTerminate_(self, app):
         # ⌘Q / Quit really quits (the window's close button only hides it)

@@ -94,6 +94,11 @@ def hide_window():
     APP["window"].hide()
 
 
+def quit_now():
+    """Quit for real, from any thread (e.g. so the installer can replace the app)."""
+    quit_app()
+
+
 def quit_app():
     APP["quitting"] = True
     cfs_gui.CANCEL.set()

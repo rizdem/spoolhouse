@@ -27,7 +27,7 @@ import printer
 
 PORT = 8765
 APP_NAME = "Spoolhouse"
-APP_VERSION = "2.9.3"
+APP_VERSION = "2.10.0"
 # Your Buy Me a Coffee (or Ko-fi / GitHub Sponsors) page. Leave empty to hide the Support button.
 SUPPORT_URL = "https://buymeacoffee.com/rizdem"
 # the only pages the About box can open (the page asks by name, never by URL)
@@ -831,6 +831,9 @@ def light_api(path, body):
     if path.startswith("/api/phone/"):
         import phone_access  # here, not at the top: it imports this module
         return phone_access.api(path, body)
+    if path == "/api/update/progress":
+        # how an update being installed is going (polled while the card shows its progress bar)
+        return dict(updates.INSTALL)
     if path == "/api/app/show":
         # a second copy of the app being opened asks this one to come forward
         if "show" in NATIVE:
@@ -854,6 +857,13 @@ def light_api(path, body):
         if st["latest"]:
             updates.skip(st["latest"]["version"])
         return updates.status(APP_VERSION)
+    if path == "/api/update/install":
+        # only ever the release GitHub gave us, checked in updates; the page can't choose what's installed
+        st = updates.status(APP_VERSION)
+        if not st["can_install"] or "quit" not in NATIVE:
+            raise ValueError("This copy of Spoolhouse can't update itself: use Download instead.")
+        updates.start_install(st["latest"], NATIVE["quit"], os.path.join(inv.DATA_DIR, "update.log"))
+        return dict(updates.INSTALL)
     if path == "/api/update/open":
         # only ever the release page GitHub gave us (checked in updates.fetch_latest), never a URL from the page
         st = updates.status(APP_VERSION)

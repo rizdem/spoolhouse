@@ -429,3 +429,8 @@ nav .verbtn:hover{background:none;text-decoration:underline}
 .binfo{margin-top:10px;padding:10px 12px;border-radius:10px;background:rgba(255,122,61,.08);border:1px solid rgba(255,122,61,.25)}
 .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .bcol .bmat{font-size:11px;opacity:.65;border-left:1px solid var(--line);padding-left:6px}
+
+/* installing an update: a progress bar in the update card */
+.updprog{display:grid;gap:6px;margin-top:10px}
+.updprog .bar{height:6px;border-radius:99px;background:var(--track);overflow:hidden}
+.updprog .bar i{display:block;height:100%;width:0;background:var(--acc);transition:width .3s}

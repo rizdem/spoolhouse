@@ -3,6 +3,16 @@
 Versions follow [semantic versioning](https://semver.org): **major** for big or breaking
 changes, **minor** for new features, **patch** for bug fixes.
 
+## 2.10.0 - 2026-10-31
+
+### Added
+- **Install updates from inside the app.** When a new version is out, "Install update" downloads it from the
+  GitHub release, checks it is exactly the file published there (its SHA-256 fingerprint and size), and restarts
+  Spoolhouse on the new version. Your data is kept. On a Mac the new app is checked (it must be Spoolhouse, at
+  the expected version, with its signature intact) before it replaces the old one, and the old one is put back
+  if anything goes wrong. On Windows the installer runs with just a progress bar, into the same folder. If this
+  copy can't replace itself (for example in a folder it can't write to), "Download" opens the release page as before.
+
 ## 2.9.3 - 2026-10-31
 
 ### Changed

@@ -11,7 +11,13 @@ function showUpdate(s){
   if(card){
     $("updTitle").textContent=`Spoolhouse ${v} is available`;
     const d=s.latest.published?new Date(s.latest.published).toLocaleDateString([], {day:"numeric",month:"long",year:"numeric"}):"";
-    $("updText").textContent=`You have ${s.current}.`+(d?` Released ${d}.`:"")+(IS_WIN?" Download and run the new installer. Your data is kept.":" Download it from GitHub, quit Spoolhouse and replace the app in Applications. Your data is kept.");
+    $("updText").textContent=`You have ${s.current}.`+(d?` Released ${d}.`:"")+(s.can_install
+      ?" Install it now: Spoolhouse downloads it, checks it and restarts. Your data is kept."
+      :(IS_WIN?" Download and run the new installer. Your data is kept.":" Download it from GitHub, quit Spoolhouse and replace the app in Applications. Your data is kept."));
+    $("updInstall").hidden=!s.can_install;
+    $("updGet").textContent=s.can_install?"What's new":"Download";
+    $("updGet").classList.toggle("pri",!s.can_install);
+    if(s.install&&s.install.stage)showInstall(s.install);
   }
   const st=$("upStatus"); if(!st)return;
   $("upAuto").checked=s.auto;
@@ -30,6 +36,22 @@ $("upCheck").onclick=async()=>{
   $("upCheck").disabled=false;
 };
 $("updGet").onclick=()=>call("/api/update/open").catch(()=>{});
+// installing: download, check, restart; the card shows how it's going until the app closes
+let installTimer=null;
+function showInstall(p){
+  const busy=["downloading","checking","restarting"].includes(p.stage);
+  $("updProg").hidden=!p.stage; $("updBtns").hidden=busy;
+  const pct=p.total?Math.min(100,Math.round(p.done/p.total*100)):0;
+  $("updBar").style.width=(p.stage==="downloading"?pct:p.stage==="error"?0:100)+"%";
+  $("updStage").textContent={downloading:`Downloading… ${pct}%`,checking:"Checking the download…",
+    restarting:"Restarting Spoolhouse…",error:p.error||"The update didn't install."}[p.stage]||"";
+  if(!busy&&installTimer){clearInterval(installTimer);installTimer=null}
+}
+$("updInstall").onclick=async()=>{
+  try{showInstall(await call("/api/update/install"));
+    installTimer=installTimer||setInterval(async()=>{try{showInstall(await call("/api/update/progress"))}catch(e){}},500)}
+  catch(e){showInstall({stage:"error",error:e.message})}
+};
 $("updLater").onclick=()=>{store.set("updLater",UPD.latest.version+"|"+START);$("updCard").hidden=true};
 $("updSkip").onclick=async()=>{try{showUpdate(await call("/api/update/skip"))}catch(e){}};
 $("updLink").onclick=()=>{store.set("updLater","");showUpdate(UPD)};
