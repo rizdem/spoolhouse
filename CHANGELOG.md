@@ -3,6 +3,12 @@
 Versions follow [semantic versioning](https://semver.org): **major** for big or breaking
 changes, **minor** for new features, **patch** for bug fixes.
 
+## 2.10.2 - 2026-11-01
+
+### Fixed
+- **Colour swatches spilling out of their box on a Mac.** In some window sizes the swatches on the Create page
+  grew too big and ran out of the Colour card, under the column beside it. They now always fit the card.
+
 ## 2.10.1 - 2026-11-01
 
 ### Added
