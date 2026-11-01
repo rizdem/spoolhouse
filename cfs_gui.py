@@ -27,7 +27,7 @@ import printer
 
 PORT = 8765
 APP_NAME = "Spoolhouse"
-APP_VERSION = "2.10.2"
+APP_VERSION = "2.11.0"
 # Your Buy Me a Coffee (or Ko-fi / GitHub Sponsors) page. Leave empty to hide the Support button.
 SUPPORT_URL = "https://buymeacoffee.com/rizdem"
 # the only pages the About box can open (the page asks by name, never by URL)
@@ -648,6 +648,7 @@ def printer_history(pid, limit=50, start=0):
     hist = printer.fetch_history(p["host"], limit, start)
     spools = {s["id"]: s for s in inv.list_all()}
     skipped = inv.skipped_jobs()
+    in_project = inv.project_of_jobs()
     since = float(p["track_since"] or 0)
     for j in hist["jobs"]:
         key = f"{pid}:{j['id']}"
@@ -677,6 +678,7 @@ def printer_history(pid, limit=50, start=0):
         j["cost"] = round(cost, 2) if per and cost else None   # filament cost of what's been charged
         j["cost_partial"] = bool(per) and unpriced and cost > 0     # some spools have no price
         j["skipped"] = key in skipped
+        j["project"] = in_project.get(key)
         j["tracked_era"] = bool(j["start"] and j["start"] >= since)
         j["needs"] = (j["status"] != "in_progress" and j["mm"] > 0 and not j["skipped"]
                       and (bool(j["unassigned"]) or not rows))
@@ -684,6 +686,17 @@ def printer_history(pid, limit=50, start=0):
     month = datetime.date.today().replace(day=1)
     hist["month"] = inv.usage_totals(f"{pid}:", time.mktime(month.timetuple()))
     return hist
+
+
+def add_to_project(body):
+    """Put prints from one printer's log in a project (new if `name` is given), keeping each print's details."""
+    p = inv.get_printer(int(body["printer_id"]))
+    pid = body.get("project_id") or inv.save_project(body.get("name"))
+    jobs = [{**j, "job": f"{p['id']}:{j['id']}", "printer": p["name"]} for j in body.get("jobs") or [] if j.get("id") is not None]
+    if not jobs:
+        raise ValueError("Tick the prints to add first.")
+    inv.add_to_project(pid, jobs)
+    return {"id": pid, "added": len(jobs), "name": inv.get_project(pid)["name"]}
 
 
 def job_charges(body):
@@ -952,6 +965,20 @@ def light_api(path, body):
         return job_plan(int(body["id"]), body.get("file") or "")
     if path == "/api/printer/job_charges":
         return job_charges(body)
+    if path == "/api/projects/list":
+        return {"projects": inv.list_projects()}
+    if path == "/api/projects/get":
+        return inv.get_project(body["id"])
+    if path == "/api/projects/save":
+        return {"id": inv.save_project(body.get("name"), body.get("notes", ""), body.get("id"))}
+    if path == "/api/projects/delete":
+        inv.delete_project(body["id"])
+        return {"ok": True}
+    if path == "/api/projects/add":
+        return add_to_project(body)
+    if path == "/api/projects/remove":
+        inv.remove_from_project(body["job"])
+        return {"ok": True}
     if path == "/api/printer/skip_job":
         inv.set_job_skipped(f"{int(body['id'])}:{body['job_id']}", bool(body.get("skip")))
         return {"ok": True}

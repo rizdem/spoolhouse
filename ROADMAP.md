@@ -39,6 +39,7 @@ Status: ✅ done · 🚧 in progress · 📋 planned
 | ✅ | **App icon** | "One Strand": a single line of filament that winds into a spool and draws the house (`branding/Spoolhouse.svg`). |
 | ✅ | **Update available notice** | Checks GitHub releases once a day; notification, a card with Download / Later / Skip this version, and Settings → Updates. |
 | ✅ | **In-app updates** | Install a new version from inside the app: downloaded, checked against GitHub's fingerprint and swapped in, keeping your data (2.10). |
+| ✅ | **Projects** | Group prints into projects with the filaments, cost and print time of each (2.11). |
 | 📋 | **Developer ID signing and notarization** | Opens without the "unidentified developer" warning (needs an Apple Developer membership). |
 | ✅ | **Split the interface into files** | Move the page out of `cfs_gui.py` into separate HTML, CSS and JS files, so it's easier to contribute to. |
 | ✅ | **Automated tests** | Tests for stock, charging and refund maths, run on every change (GitHub Actions). |

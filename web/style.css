@@ -439,3 +439,17 @@ nav .verbtn:hover{background:none;text-decoration:underline}
 .rgb{display:inline-flex;gap:6px;align-items:center}
 .rgbl{display:inline-flex;gap:4px;align-items:center;font-size:12px}
 .rgbin{width:62px}
+
+/* projects */
+.tbl tr.click{cursor:pointer}.tbl tr.click:hover td{background:color-mix(in srgb,var(--acc) 6%,transparent)}
+.tbl tr.total td{font-weight:700;border-bottom:0}
+.tbl .filcell{display:flex;align-items:center;gap:8px}
+.tbl th.pick,.tbl td.pick{width:28px;padding-right:0}
+.tbl td.prjempty{padding:18px 12px}
+.prjstats{grid-template-columns:repeat(4,1fr)}
+@media (max-width:700px){.prjstats{grid-template-columns:repeat(2,1fr)}}
+.prjbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;padding:8px 10px;border-radius:9px;
+  background:color-mix(in srgb,var(--acc) 9%,transparent);border:1px solid color-mix(in srgb,var(--acc) 30%,transparent);font-size:13px}
+.prjbar select,.prjbar input{height:var(--ctl-sm);font-size:13px;max-width:220px}
+.prjchip{border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:999px;padding:2px 9px;font:inherit;font-size:12px;cursor:pointer;white-space:nowrap}
+.prjchip:hover{border-color:var(--acc);color:var(--acc)}

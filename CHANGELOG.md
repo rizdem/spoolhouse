@@ -3,6 +3,18 @@
 Versions follow [semantic versioning](https://semver.org): **major** for big or breaking
 changes, **minor** for new features, **patch** for bug fixes.
 
+## 2.11.0 - 2026-11-01
+
+### Added
+- **Projects.** A new Projects page in the sidebar groups prints together, to see what went into a project:
+  every filament it used (brand, material and colour) with the grams and cost of each, the total filament
+  cost, the total print time and the number of prints. Add prints from a printer's print log: tick them,
+  then pick a project (or make a new one) and choose Add to project. The print log shows which project each
+  print is in. A print is in one project at most, so nothing is counted twice. Each print's name, printer and
+  time are kept with the project, so it still adds up after the printer's own history is cleared. Filament
+  from spools with no price is shown, and the cost is marked "+" so it's never quietly too low. Removing a
+  print from a project, or deleting a project, asks first, and keeps the print's filament charges.
+
 ## 2.10.2 - 2026-11-01
 
 ### Fixed

@@ -104,13 +104,14 @@ function busy(on){["write","read","fmt","scan"].forEach(i=>$(i).disabled=on);doc
 document.querySelectorAll(".cancel").forEach(b=>b.onclick=()=>{cancelled=true;call("/api/cancel").catch(()=>{})});
 const fail=(e,id)=>e.message==="Cancelled."?status("Cancelled.","mute",id):status(e.message,"bad",id);
 
-const VIEWS=["inventory","printer","create","settings"];
+const VIEWS=["inventory","printer","projects","create","settings"];
 function show(v){
   document.querySelectorAll("nav button[data-view]").forEach(b=>b.classList.toggle("on",b.dataset.view===v));
   for(const name of VIEWS) $("view-"+name).hidden=v!==name;
   store.set("view",v); if(v==="inventory") loadInv(); else if(selecting) setSelecting(false);
   if(v==="printer") enterPrinters();
   if(v==="settings") loadSettings();
+  if(v==="projects") loadProjects();
 }
 document.querySelectorAll("nav button[data-view]").forEach(b=>b.onclick=()=>show(b.dataset.view));
 

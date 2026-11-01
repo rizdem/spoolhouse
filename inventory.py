@@ -198,6 +198,13 @@ def _connect():
         id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, model TEXT, host TEXT,
         created REAL, track_since REAL, track_job TEXT, track_mm REAL DEFAULT 0, track_slot TEXT)""")
     _migrate_single_printer(con)
+    # projects group prints; each print is in one project at most (job is the key), and keeps what it was
+    # (name, printer, time...) so a project still adds up after the printer's own history is cleared
+    con.execute("""CREATE TABLE IF NOT EXISTS projects (
+        id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, notes TEXT DEFAULT '', created REAL)""")
+    con.execute("""CREATE TABLE IF NOT EXISTS project_prints (
+        job TEXT PRIMARY KEY, project_id INTEGER NOT NULL, name TEXT, printer TEXT, status TEXT,
+        start REAL, duration REAL DEFAULT 0, mm REAL DEFAULT 0, added REAL)""")
     return con
 
 
@@ -804,6 +811,138 @@ def usage_totals(job_prefix, since):
                         "SUM(CASE WHEN cost_g IS NULL THEN grams ELSE 0 END) FROM usage "
                         "WHERE spool_id IS NOT NULL AND job LIKE ? AND at >= ?", (job_prefix + "%", since)).fetchone()
     return {"grams": r[0], "cost": r[1], "prints": r[2], "unpriced_g": r[3] or 0}
+
+
+# ---------------------------------------------------------------- projects
+def _clean_name(name):
+    name = " ".join(str(name or "").split())[:80]
+    if not name:
+        raise ValueError("Give the project a name.")
+    return name
+
+
+def save_project(name, notes="", pid=None):
+    """Create a project (no pid) or rename it / change its notes. Returns its id."""
+    name, notes = _clean_name(name), str(notes or "").strip()[:2000]
+    with _db() as con:
+        if pid:
+            if not con.execute("UPDATE projects SET name = ?, notes = ? WHERE id = ?", (name, notes, int(pid))).rowcount:
+                raise ValueError("That project no longer exists.")
+            return int(pid)
+        return con.execute("INSERT INTO projects (name, notes, created) VALUES (?, ?, ?)",
+                           (name, notes, time.time())).lastrowid
+
+
+def delete_project(pid):
+    """Remove a project. Its prints and their filament charges are kept; they're just not in a project."""
+    with _db() as con:
+        con.execute("DELETE FROM project_prints WHERE project_id = ?", (int(pid),))
+        con.execute("DELETE FROM projects WHERE id = ?", (int(pid),))
+
+
+def add_to_project(pid, prints):
+    """Put prints in a project, moving any that were in another one (a print is in one project at most).
+    Each print: {job: "<printer id>:<job id>", name, printer, status, start, duration, mm}."""
+    now = time.time()
+    num = lambda v: float(v) if isinstance(v, (int, float)) and v == v else 0.0  # noqa: E731 (not NaN)
+    with _db() as con:
+        if not con.execute("SELECT 1 FROM projects WHERE id = ?", (int(pid),)).fetchone():
+            raise ValueError("That project no longer exists.")
+        for p in prints:
+            job = str(p.get("job") or "")
+            if ":" not in job:
+                continue
+            con.execute("INSERT OR REPLACE INTO project_prints (job, project_id, name, printer, status, start, duration, mm, added) "
+                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                        (job, int(pid), str(p.get("name") or "")[:200], str(p.get("printer") or "")[:80],
+                         str(p.get("status") or "")[:40], num(p.get("start")) or None, num(p.get("duration")),
+                         num(p.get("mm")), now))
+
+
+def remove_from_project(job):
+    with _db() as con:
+        con.execute("DELETE FROM project_prints WHERE job = ?", (str(job),))
+
+
+def project_of_jobs():
+    """{job: {"id", "name"}} for every print that's in a project, for the print log."""
+    with _db() as con:
+        return {r[0]: {"id": r[1], "name": r[2]} for r in con.execute(
+            "SELECT pp.job, p.id, p.name FROM project_prints pp JOIN projects p ON p.id = pp.project_id")}
+
+
+def _project_usage(con, pid):
+    return [dict(r) for r in con.execute(
+        "SELECT u.* FROM usage u JOIN project_prints pp ON pp.job = u.job WHERE pp.project_id = ?", (pid,))]
+
+
+def _totals(prints, usage):
+    """A project's totals: print time, filament (charged to spools, and not yet assigned), and its cost."""
+    charged = [u for u in usage if u["spool_id"]]
+    priced = [u for u in charged if u["cost_g"] is not None]
+    charged_jobs = {u["job"] for u in charged}
+    return {
+        "prints": len(prints),
+        "duration": sum(p["duration"] or 0 for p in prints),
+        "grams": round(sum(u["grams"] for u in usage), 1),
+        "cost": round(sum(u["grams"] * u["cost_g"] for u in priced), 2) if priced else None,
+        "unpriced_g": round(sum(u["grams"] for u in charged if u["cost_g"] is None), 1),
+        "unassigned_g": round(sum(u["grams"] for u in usage if not u["spool_id"]), 1),
+        "uncharged": sum(1 for p in prints if p["job"] not in charged_jobs),  # prints not charged to a spool yet
+    }
+
+
+def list_projects():
+    """Every project with its totals, newest first."""
+    with _db() as con:
+        projects = [dict(r) for r in con.execute("SELECT * FROM projects ORDER BY created DESC")]
+        for p in projects:
+            prints = [dict(r) for r in con.execute("SELECT * FROM project_prints WHERE project_id = ?", (p["id"],))]
+            p.update(_totals(prints, _project_usage(con, p["id"])))
+            p["last"] = max((x["start"] or 0 for x in prints), default=None) or None
+    return projects
+
+
+def get_project(pid):
+    """One project: its prints (newest first), each with its filament and cost, the filaments used across
+    all of them (brand, material, colour) with grams and cost, and the totals."""
+    with _db() as con:
+        row = con.execute("SELECT * FROM projects WHERE id = ?", (int(pid),)).fetchone()
+        if not row:
+            raise ValueError("That project no longer exists.")
+        project = dict(row)
+        prints = [dict(r) for r in con.execute(
+            "SELECT * FROM project_prints WHERE project_id = ? ORDER BY start DESC", (project["id"],))]
+        usage = _project_usage(con, project["id"])
+    by_job, filaments = {}, {}
+    for u in usage:
+        by_job.setdefault(u["job"], []).append(u)
+        if not u["spool_id"]:
+            continue
+        key = ((u["brand"] or "").strip(), u["material"] or "", (u["color"] or "").upper())
+        f = filaments.setdefault(key, {"brand": key[0], "material": key[1], "color": key[2],
+                                       "grams": 0.0, "cost": 0.0, "unpriced_g": 0.0, "prints": set()})
+        f["grams"] += u["grams"]
+        f["prints"].add(u["job"])
+        if u["cost_g"] is None:
+            f["unpriced_g"] += u["grams"]
+        else:
+            f["cost"] += u["grams"] * u["cost_g"]
+    for p in prints:
+        rows = by_job.get(p["job"], [])
+        charged = [u for u in rows if u["spool_id"]]
+        priced = [u for u in charged if u["cost_g"] is not None]
+        p["grams"] = round(sum(u["grams"] for u in rows), 1)
+        p["cost"] = round(sum(u["grams"] * u["cost_g"] for u in priced), 2) if priced else None
+        p["cost_partial"] = bool(priced) and len(priced) < len(charged)
+        p["charged"] = bool(charged)
+        p["unassigned_g"] = round(sum(u["grams"] for u in rows if not u["spool_id"]), 1)
+    fl = []
+    for f in sorted(filaments.values(), key=lambda f: -f["grams"]):
+        fl.append({**f, "grams": round(f["grams"], 1), "unpriced_g": round(f["unpriced_g"], 1),
+                   "cost": round(f["cost"], 2) if f["grams"] > f["unpriced_g"] else None, "prints": len(f["prints"])})
+    project.update(prints=prints, filaments=fl, totals=_totals(prints, usage))
+    return project
 
 
 # ---------------------------------------------------------------- backups

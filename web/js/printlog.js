@@ -1,6 +1,6 @@
 // Spoolhouse - A printer's print log and the charge dialog.
 // ---------- print log
-let logMonth=null, logJobs=[], logTotal=0, logMode=store.get("logMode","all");
+let logMonth=null, logJobs=[], logTotal=0, logMode=store.get("logMode","all"), logPicked=new Set(), logPrjLast=null;
 const fmtWhen=t=>t?new Date(t*1000).toLocaleString([], {day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}):"";
 const fmtDur=s=>{const d=Math.round(s/60);return d>=60?`${Math.floor(d/60)}h ${d%60}m`:`${d}m`};
 const jobName=j=>j.name.replace(/_\d+h\d+m\d*s?$/,"").replace(/_/g," ");
@@ -8,7 +8,7 @@ function snapName(color,material){return `${color?colorName(color)+" ":""}${mate
 function swatch(color){const m=el("i","mini");m.style.background=color?"#"+color:"transparent";if(!color)m.style.borderStyle="dashed";return m}
 async function loadLog(more=false){
   const tb=$("pLog"), id=curPrinter; $("pLogCard").hidden=false;
-  if(!more){logJobs=[]; if(!tb.rows.length){tb.appendChild(el("tr")).appendChild(el("td","mute","Loading print history…"))}}
+  if(!more){logJobs=[]; logPicked.clear(); if(!tb.rows.length){tb.appendChild(el("tr")).appendChild(el("td","mute","Loading print history…"))}}
   try{
     const d=await call("/api/printer/history",{id,limit:50,start:more?logJobs.length:0}); if(id!==curPrinter)return;
     logJobs=more?logJobs.concat(d.jobs):d.jobs; logTotal=d.total; if(d.month) logMonth=d.month; renderLog();
@@ -25,16 +25,26 @@ function renderLog(){
   if(needs) sum.appendChild(el("span","warn",`${needs}${logJobs.length<logTotal?"+":""} need${needs===1&&logJobs.length>=logTotal?"s":""} attention`));
   $("pLogMore").hidden=logJobs.length>=logTotal; $("pLogMore").textContent=`Load older prints (${logJobs.length} of ${logTotal})`;
   const rows=logMode==="needs"?logJobs.filter(j=>j.needs):logJobs;
-  const h=el("tr");["Started","Print","Status","Time","Filament","Cost","From"].forEach((x,i)=>h.appendChild(el("th",i>=3&&i<=5?"num":null,x)));tb.appendChild(h);
+  const h=el("tr"), all=el("input"); all.type="checkbox"; all.title="Tick all the prints shown";
+  const pickable=rows.filter(j=>j.status!=="in_progress"); all.checked=pickable.length>0&&pickable.every(j=>logPicked.has(j.id));
+  all.onchange=()=>{pickable.forEach(j=>all.checked?logPicked.add(j.id):logPicked.delete(j.id));renderLog()};
+  const c0=el("th","pick"); c0.appendChild(all); h.appendChild(c0);
+  ["Started","Print","Status","Time","Filament","Cost","Project","From"].forEach((x,i)=>h.appendChild(el("th",i>=3&&i<=5?"num":null,x)));tb.appendChild(h);
   if(!rows.length){tb.appendChild(el("tr")).appendChild(el("td","mute",logMode==="needs"?"Nothing needs attention. Every print here is charged or skipped.":"No prints yet."));return}
   for(const j of rows){
-    const tr=el("tr",j.needs?"needs":null);
+    const tr=el("tr",j.needs?"needs":null), pc=el("td","pick");
+    if(j.status!=="in_progress"){const cb=el("input");cb.type="checkbox";cb.checked=logPicked.has(j.id);
+      cb.onchange=()=>{cb.checked?logPicked.add(j.id):logPicked.delete(j.id);renderLog()};pc.appendChild(cb)}
+    tr.appendChild(pc);
     tr.appendChild(el("td",null,fmtWhen(j.start))); tr.appendChild(el("td",null,jobName(j)));
     const sc=el("td"); sc.appendChild(el("span","st "+j.status,j.status==="in_progress"?"Printing":j.status.replace(/_/g," "))); tr.appendChild(sc);
     tr.appendChild(el("td","num",fmtDur(j.duration)));
     tr.appendChild(el("td","num",`${(j.mm/1000).toFixed(1)} m · ${Math.round(j.grams)} g`));
     const ct=el("td","num",j.cost!=null?money(j.cost)+(j.cost_partial?"+":""):"—");
     if(j.cost_partial) ct.title="Some of the spools this print used have no price"; tr.appendChild(ct);
+    const pj=el("td");
+    if(j.project){const b=el("button","prjchip",j.project.name);b.title="Open this project";b.onclick=()=>{curProject=j.project.id;show("projects")};pj.appendChild(b)}
+    tr.appendChild(pj);
     const from=el("td"), u=el("div","used"), acts=el("div","acts");
     for(const x of j.spools){const s=spools.find(y=>y.id===x.spool_id), r=el("span"); r.appendChild(swatch(x.color));
       r.appendChild(document.createTextNode(`${s?groupName(s):snapName(x.color,x.material)+" (deleted)"} · ${fmtG(x.grams)} g`)); u.appendChild(r)}
@@ -50,8 +60,33 @@ function renderLog(){
       if(!charged){const sk=el("button","btn sm","Skip"); sk.title="Your spool amounts already include this print"; sk.onclick=()=>skipJob(j,true); acts.appendChild(sk)}
     }
     from.appendChild(u); if(acts.children.length) from.appendChild(acts); tr.appendChild(from); tb.appendChild(tr);
-  }
+  }  renderPrjBar();
 }
+// ---------- adding ticked prints to a project
+async function renderPrjBar(){
+  const n=logPicked.size; $("logPrjBar").hidden=!n; if(!n)return;
+  $("logPrjCount").textContent=`${n} print${n===1?"":"s"} ticked`;
+  const pick=$("logPrjPick"), keep=pick.value;
+  try{projects=(await call("/api/projects/list")).projects}catch(e){}
+  pick.replaceChildren(...projects.map(p=>new Option(p.name,p.id)),new Option("New project…","new"));
+  // keep the choice, unless it was "New project…" with no name yet: then the project last added to, or the newest
+  const fallback=logPrjLast&&projects.some(p=>p.id===logPrjLast)?String(logPrjLast):projects.length?String(projects[0].id):"new";
+  pick.value=keep&&keep!=="new"&&[...pick.options].some(o=>o.value===keep)?keep:keep==="new"&&$("logPrjName").value.trim()?"new":fallback;
+  $("logPrjName").hidden=pick.value!=="new";
+}
+$("logPrjPick").onchange=()=>{$("logPrjName").hidden=$("logPrjPick").value!=="new";if(!$("logPrjName").hidden)$("logPrjName").focus()};
+$("logPrjClear").onclick=()=>{logPicked.clear();$("logPrjMsg").textContent="";renderLog()};
+$("logPrjAdd").onclick=async()=>{
+  const pick=$("logPrjPick").value, jobs=logJobs.filter(j=>logPicked.has(j.id));
+  const elsewhere=jobs.filter(j=>j.project&&String(j.project.id)!==pick);
+  if(elsewhere.length&&!confirm(`${elsewhere.length===1?`"${jobName(elsewhere[0])}" is`:`${elsewhere.length} of these prints are`} already in another project. A print can only be in one project, so ${elsewhere.length===1?"it":"they"}'ll move.\n\nAdd anyway?`))return;
+  const body={printer_id:curPrinter,jobs:jobs.map(j=>({id:j.id,name:j.name,status:j.status,start:j.start,duration:j.duration,mm:j.mm}))};
+  if(pick==="new") body.name=$("logPrjName").value; else body.project_id=+pick;
+  try{const r=await call("/api/projects/add",body); logPicked.clear(); logPrjLast=r.id; $("logPrjName").value="";
+    $("logPrjPick").value=""; $("logPrjMsg").textContent=""; await loadLog();
+    toast(`Added ${r.added} print${r.added===1?"":"s"} to ${r.name}.`,"var(--ok)",{label:"Open",fn:()=>{curProject=r.id;show("projects")}})}
+  catch(e){$("logPrjMsg").textContent=e.message}
+};
 async function skipJob(j,skip){
   try{await call("/api/printer/skip_job",{id:curPrinter,job_id:j.id,skip});await loadLog()}catch(e){alert(e.message)}
 }
