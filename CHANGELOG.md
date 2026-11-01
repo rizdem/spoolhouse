@@ -3,7 +3,7 @@
 Versions follow [semantic versioning](https://semver.org): **major** for big or breaking
 changes, **minor** for new features, **patch** for bug fixes.
 
-## 2.10.0 - 2026-10-31
+## 2.10.1 - 2026-11-01
 
 ### Added
 - **Install updates from inside the app.** When a new version is out, "Install update" downloads it from the
