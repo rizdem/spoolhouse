@@ -381,6 +381,7 @@ $("eTareDefault").onclick=async()=>{
 function eColor(h){h=(h||"").replace("#","").toUpperCase();if(!/^[0-9A-F]{6}$/.test(h))return;$("eHex").value=h;$("ePicker").value="#"+h}
 $("ePicker").oninput=e=>eColor(e.target.value);
 $("eHex").oninput=e=>eColor(e.target.value);
+rgbBoxes("eHex");
 
 function openEditor(existing,fresh){
   const s=existing||fresh; editing={id:existing?existing.id:null,serial:s.serial||"",uids:s.uids||""};

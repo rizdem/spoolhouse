@@ -434,3 +434,8 @@ nav .verbtn:hover{background:none;text-decoration:underline}
 .updprog{display:grid;gap:6px;margin-top:10px}
 .updprog .bar{height:6px;border-radius:99px;background:var(--track);overflow:hidden}
 .updprog .bar i{display:block;height:100%;width:0;background:var(--acc);transition:width .3s}
+
+/* R, G and B boxes after a hex colour box (rgbBoxes in core.js) */
+.rgb{display:inline-flex;gap:6px;align-items:center}
+.rgbl{display:inline-flex;gap:4px;align-items:center;font-size:12px}
+.rgbin{width:62px}

@@ -12,6 +12,9 @@ changes, **minor** for new features, **patch** for bug fixes.
   the expected version, with its signature intact) before it replaces the old one, and the old one is put back
   if anything goes wrong. On Windows the installer runs with just a progress bar, into the same folder. If this
   copy can't replace itself (for example in a folder it can't write to), "Download" opens the release page as before.
+- **R, G and B values next to every colour.** The colour boxes (making a tag, editing a spool, adding your own
+  filament) now show the colour's red, green and blue values beside its hex code. Type in them to set a colour
+  from RGB numbers; they follow the colour wheel, the swatches and brand colours too.
 
 ## 2.9.3 - 2026-10-31
 

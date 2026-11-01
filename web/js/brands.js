@@ -131,6 +131,7 @@ $("myOpen").onclick=()=>{
 $("myCancel").onclick=()=>{$("myForm").hidden=true};
 $("myPick").oninput=e=>{$("myHex").value=e.target.value.replace("#","").toUpperCase()};
 $("myHex").oninput=e=>{const h=e.target.value.replace("#","").toUpperCase(); if(/^[0-9A-F]{6}$/.test(h))$("myPick").value="#"+h};
+rgbBoxes("myHex");
 $("mySave").onclick=async()=>{
   const f={brand:$("myBrand").value.trim(),m:$("myMat").value.trim(),n:$("myName").value.trim(),c:$("myHex").value.trim(),
     nozzle:$("myNozzle").value.trim(),bed:$("myBed").value.trim(),sw:$("mySw").value,w:$("myW").value};

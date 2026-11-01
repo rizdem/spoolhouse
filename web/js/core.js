@@ -148,3 +148,29 @@ async function checkReader(){
 checkReader(); setInterval(checkReader,2500);
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")checkReader()});
 
+
+// R, G and B boxes after a hex box, kept in step both ways. Typing an RGB value writes the hex box and sends it
+// the same "input" event as typing there, so the page's own colour code (swatch, name...) does the rest. The hex
+// box's value is watched too, so colours set by code (a brand's colour, the colour wheel) show their RGB at once.
+function rgbBoxes(hexId){
+  const hex=$(hexId), wrap=el("span","rgb"), boxes=["R","G","B"].map(c=>{
+    const i=document.createElement("input");
+    Object.assign(i,{type:"number",min:0,max:255,step:1,placeholder:c,title:c==="R"?"Red (0-255)":c==="G"?"Green (0-255)":"Blue (0-255)"});
+    i.className="rgbin"; i.setAttribute("aria-label",i.title);
+    const l=el("label","rgbl"); l.append(el("span","mute",c),i); wrap.appendChild(l); return i;
+  });
+  hex.after(wrap);
+  const show=()=>{const h=String(hex.value||"").replace("#","");
+    if(/^[0-9A-Fa-f]{6}$/.test(h))boxes.forEach((b,k)=>{if(document.activeElement!==b)b.value=parseInt(h.slice(k*2,k*2+2),16)})};
+  const proto=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value");
+  Object.defineProperty(hex,"value",{configurable:true,get(){return proto.get.call(this)},set(v){proto.set.call(this,v);show()}});
+  hex.addEventListener("input",show);
+  boxes.forEach(b=>b.addEventListener("input",()=>{
+    const n=boxes.map(x=>x.value===""?NaN:Math.round(+x.value));
+    if(n.some(v=>!(v>=0&&v<=255)))return;  // wait until all three are whole numbers from 0 to 255
+    hex.value=n.map(v=>v.toString(16).padStart(2,"0")).join("").toUpperCase();
+    hex.dispatchEvent(new Event("input",{bubbles:true}));
+  }));
+  boxes.forEach(b=>b.addEventListener("blur",show));  // a box left half-typed goes back to the colour's value
+  show();
+}

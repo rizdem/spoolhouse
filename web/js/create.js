@@ -10,6 +10,7 @@ function setColor(h,fromBrand){h=h.replace("#","").toUpperCase();if(!/^[0-9A-F]{
   render()}
 $("picker").oninput=e=>setColor(e.target.value);
 $("hex").oninput=e=>setColor(e.target.value);
+rgbBoxes("hex");
 $("mat").onchange=render;
 function render(){
   const h=$("hex").value.toUpperCase();
