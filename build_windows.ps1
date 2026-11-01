@@ -12,9 +12,6 @@ if ($LASTEXITCODE -ne 0) { git checkout --quiet --detach $Ref }
 if ($LASTEXITCODE -ne 0) { throw "Couldn't find '$Ref' to build." }
 Write-Host "Building $(git log -1 --format='%h %s')"
 
-$iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
-if (-not (Test-Path $iscc)) { throw "Inno Setup 6 isn't installed: winget install JRSoftware.InnoSetup" }
-
 if (-not (Test-Path .venv\Scripts\python.exe)) {
     uv venv --python 3.12 --python-preference only-managed .venv
 }
