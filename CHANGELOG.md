@@ -3,7 +3,7 @@
 Versions follow [semantic versioning](https://semver.org): **major** for big or breaking
 changes, **minor** for new features, **patch** for bug fixes.
 
-## 2.11.0 - 2026-11-01
+## 2.11.0 - 2026-11-08
 
 ### Added
 - **Projects.** A new Projects page in the sidebar groups prints together, to see what went into a project:
