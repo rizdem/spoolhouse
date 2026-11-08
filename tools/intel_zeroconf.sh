@@ -6,9 +6,9 @@
 set -e
 PY=${1:?path to the Intel Python}
 OUT=$(mktemp -d)
-# the newest zeroconf that requirements.txt allows, from PyPI's own source package
-VERSION=$(uv pip compile --quiet --python-platform x86_64-apple-darwin --python-version 3.12 requirements.txt \
-          | grep -m1 '^zeroconf==' | cut -d= -f3)
+# the zeroconf version locked in requirements.lock, from PyPI's own source package
+VERSION=$(grep -m1 '^zeroconf==' "$(dirname "$0")/../requirements.lock" | sed -E 's/^zeroconf==([^ ;]+).*/\1/')
+[ -n "$VERSION" ] || { echo "no zeroconf in requirements.lock"; exit 1; }
 SDIST=$(curl -fsS "https://pypi.org/pypi/zeroconf/$VERSION/json" \
         | python3 -c "import json,sys; print([f['url'] for f in json.load(sys.stdin)['urls'] if f['packagetype']=='sdist'][0])")
 curl -fsSL -o "$OUT/zeroconf-$VERSION.tar.gz" "$SDIST"

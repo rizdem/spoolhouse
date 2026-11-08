@@ -93,7 +93,7 @@ needed). If SmartScreen says it protected your PC, click **More info → Run any
 
 ```bash
 uv venv --python 3.12 --python-preference only-managed .venv
-uv pip install --python .venv/bin/python -r requirements-dev.txt
+uv pip install --python .venv/bin/python -r requirements.lock
 ./build_app.sh          # runs the tests, then builds dist/Spoolhouse.app and a release zip
 ./build_app.sh intel    # the Intel version (setup steps are at the top of build_app.sh)
 ```
@@ -102,9 +102,15 @@ On Windows (needs [Inno Setup 6](https://jrsoftware.org/isdl.php) for the instal
 
 ```bat
 uv venv --python 3.12 --python-preference only-managed .venv
-uv pip install --python .venv\Scripts\python.exe -r requirements-dev.txt
+uv pip install --python .venv\Scripts\python.exe -r requirements.lock
 .venv\Scripts\python.exe build_windows.py   :: tests, app, self-test, then dist\Spoolhouse-<version>-windows-setup.exe
 ```
+
+**Dependencies:** `requirements.txt` says the minimum version of each library; `requirements.lock` is the exact
+version (and file hashes) of everything the app is built and tested with, for Apple Silicon, Intel and Windows.
+Builds and tests install from the lock, so what you test is what ships. To move to newer libraries, run
+`tools/update_lock.sh --upgrade`, then the tests, then build and try the apps. A test fails if the two files
+disagree.
 
 **Releases are built by GitHub:** push a version tag (`git tag v2.4.0 && git push origin v2.4.0`) and the
 Build workflow makes all three downloads, self-tests them, and attaches them to a draft release.

@@ -7,14 +7,14 @@
 #
 # One-time setup. Apple Silicon (native arm64 Python in ./.venv):
 #   uv venv --python 3.12 --python-preference only-managed .venv
-#   uv pip install --python .venv/bin/python -r requirements-dev.txt
+#   uv pip install --python .venv/bin/python -r requirements.lock
 # Intel (x86_64 Python in ./.venv-x86_64, run through Rosetta on an Apple Silicon Mac). The deployment
 # target makes the installer pick builds that run on macOS 10.15+ (e.g. pyscard's universal2 wheel,
 # not its x86_64 one that needs macOS 15):
 #   uv venv --python cpython-3.12-macos-x86_64 --python-preference only-managed .venv-x86_64
 #   tools/intel_zeroconf.sh .venv-x86_64/bin/python    # zeroconf has no Intel Mac wheel: plain Python
 #   MACOSX_DEPLOYMENT_TARGET=10.15 uv pip install --python .venv-x86_64/bin/python \
-#     --python-platform x86_64-apple-darwin -r requirements-dev.txt
+#     --python-platform x86_64-apple-darwin -r requirements.lock
 set -e
 cd "$(dirname "$0")"
 

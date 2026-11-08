@@ -15,7 +15,7 @@ Write-Host "Building $(git log -1 --format='%h %s')"
 if (-not (Test-Path .venv\Scripts\python.exe)) {
     uv venv --python 3.12 --python-preference only-managed .venv
 }
-uv pip install --quiet --python .venv\Scripts\python.exe -r requirements-dev.txt
+uv pip install --quiet --python .venv\Scripts\python.exe -r requirements.lock
 if ($LASTEXITCODE -ne 0) { throw "Installing the Python packages failed." }
 
 .venv\Scripts\python.exe build_windows.py

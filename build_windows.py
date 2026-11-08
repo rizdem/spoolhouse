@@ -3,7 +3,7 @@ Build Spoolhouse for Windows: the app (PyInstaller, one folder) and its installe
 Run on Windows, from the project folder:
 
     uv venv --python 3.12 --python-preference only-managed .venv
-    uv pip install --python .venv\\Scripts\\python.exe -r requirements-dev.txt
+    uv pip install --python .venv\\Scripts\\python.exe -r requirements.lock
     .venv\\Scripts\\python.exe build_windows.py
 
 Output: dist\\Spoolhouse\\Spoolhouse.exe and dist\\Spoolhouse-<version>-windows-setup.exe.
