@@ -219,13 +219,14 @@ def unpack_mac(zip_path, folder, version):
 MAC_BUNDLE_ID = "app.spoolhouse"
 
 
-def mac_helper(new_app, bundle, pid, log, reopen=True):
+def mac_helper(new_app, bundle, pid, log, reopen=True, ready=None):
     """The script that swaps the app once this one (pid) has quit: old copy kept aside until the new one is in
     place, put back if anything fails; then opens Spoolhouse again."""
     q = shlex.quote
     old = bundle + ".old-update"
     return f"""#!/bin/sh
 exec >>{q(log)} 2>&1
+{": > " + q(ready) if ready else ":"}
 echo "$(date) installing update"
 i=0; while kill -0 {pid} 2>/dev/null && [ $i -lt 120 ]; do sleep 0.5; i=$((i+1)); done
 rm -rf {q(old)}
@@ -238,19 +239,61 @@ fi
 """
 
 
-def windows_helper(setup, exe, pid, log):
-    """PowerShell that waits for this app to quit, runs the installer quietly into the same folder (all users if it
-    was installed in Program Files, which asks Windows for permission), then opens Spoolhouse again."""
+def windows_helper(setup, exe, pid, log, ready=None):
+    """PowerShell that says it has started (the `ready` file), waits for this app to quit, runs the installer
+    quietly into the same folder (all users if it was installed in Program Files, which asks Windows for
+    permission), then opens Spoolhouse again, the new version if the installer worked and the old one if not."""
     folder = ntpath.dirname(exe)  # Windows paths, whatever this runs on (the tests run on a Mac too)
     program_files = [os.environ.get(k, "") for k in ("ProgramFiles", "ProgramW6432", "ProgramFiles(x86)")]
     scope = "/ALLUSERS" if any(p and folder.lower().startswith(p.lower()) for p in program_files) else "/CURRENTUSER"
     ps = lambda v: "'" + str(v).replace("'", "''") + "'"
-    return f"""Start-Transcript -Path {ps(log)} -Append | Out-Null
+    return f"""function Log($m) {{ try {{ Add-Content -Path {ps(log)} -Value ("{{0}} {{1}}" -f (Get-Date -Format s), $m) }} catch {{}} }}
+{"try { New-Item -ItemType File -Path " + ps(ready) + " -Force | Out-Null } catch {}" if ready else ""}
+Log 'installing update'
 Wait-Process -Id {pid} -Timeout 60 -ErrorAction SilentlyContinue
-$p = Start-Process -FilePath {ps(setup)} -ArgumentList '/SILENT','/SUPPRESSMSGBOXES','/NORESTART','{scope}',{ps('/DIR="' + folder + '"')} -Wait -PassThru
-"installer finished: $($p.ExitCode)"
+if (Get-Process -Id {pid} -ErrorAction SilentlyContinue) {{ Log 'Spoolhouse did not close in time: not installing'; exit }}
+try {{
+  $p = Start-Process -FilePath {ps(setup)} -ArgumentList '/SILENT','/SUPPRESSMSGBOXES','/NORESTART','{scope}',{ps('/DIR="' + folder + '"')} -Wait -PassThru
+  Log "installer finished: $($p.ExitCode)"
+}} catch {{ Log "the installer couldn't run: $($_.Exception.Message)" }}
+Log 'opening Spoolhouse'
 Start-Process -FilePath {ps(exe)}
 """
+
+
+CREATE_NO_WINDOW, CREATE_NEW_PROCESS_GROUP, CREATE_BREAKAWAY_FROM_JOB = 0x08000000, 0x00000200, 0x01000000
+HELPER_WAIT = 20  # seconds the helper has to say it has started
+
+
+def launch_windows_helper(script, popen=None):
+    """Start the PowerShell helper so it outlives this app. Not as a "detached process": on some Windows 11 PCs
+    PowerShell started that way quits at once with no error and never runs the script, so the app closed and
+    nothing reopened. No window, own process group, and out of any job object that would end it with the app."""
+    popen = popen or subprocess.Popen
+    cmd = ["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-WindowStyle", "Hidden", "-File", script]
+    kw = dict(close_fds=True, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    flags = CREATE_NO_WINDOW | CREATE_NEW_PROCESS_GROUP
+    try:
+        return popen(cmd, creationflags=flags | CREATE_BREAKAWAY_FROM_JOB, **kw)
+    except OSError:  # the job doesn't allow breaking away
+        return popen(cmd, creationflags=flags, **kw)
+
+
+def wait_for_helper(ready, proc):
+    """The helper's first act is to create the `ready` file. Wait for it before this app quits: if the helper
+    never gets going the app stays open, with a message, instead of closing and leaving nothing behind."""
+    end = time.time() + HELPER_WAIT
+    while time.time() < end:
+        if os.path.exists(ready):
+            return
+        if proc.poll() is not None:  # it ended without ever getting going
+            time.sleep(0.3)
+            if os.path.exists(ready):
+                return
+            break
+        time.sleep(0.1)
+    raise IOError("Spoolhouse couldn't start the installer, so it hasn't closed. Download the new version "
+                  "from GitHub instead.")
 
 
 def start_install(latest, quit_app, log_path):
@@ -269,19 +312,19 @@ def start_install(latest, quit_app, log_path):
             folder = tempfile.mkdtemp(prefix="spoolhouse-update-")
             path = download(asset, folder, lambda d, t: INSTALL.update(done=d, total=t))
             INSTALL.update(stage="checking")
+            ready = os.path.join(folder, "helper-started")
             if sys.platform == "darwin":
                 script = os.path.join(folder, "install.sh")
                 with open(script, "w") as f:
-                    f.write(mac_helper(unpack_mac(path, folder, latest["version"]), app_bundle(), os.getpid(), log_path, REOPEN))
-                subprocess.Popen(["/bin/sh", script], start_new_session=True, close_fds=True,
-                                 stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                    f.write(mac_helper(unpack_mac(path, folder, latest["version"]), app_bundle(), os.getpid(), log_path, REOPEN, ready))
+                proc = subprocess.Popen(["/bin/sh", script], start_new_session=True, close_fds=True,
+                                        stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             else:
                 script = os.path.join(folder, "install.ps1")
                 with open(script, "w", encoding="utf-8-sig") as f:
-                    f.write(windows_helper(path, sys.executable, os.getpid(), log_path))
-                subprocess.Popen(["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-WindowStyle", "Hidden",
-                                  "-File", script], creationflags=0x00000008 | 0x00000200,  # detached, own group
-                                 close_fds=True, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                    f.write(windows_helper(path, sys.executable, os.getpid(), log_path, ready))
+                proc = launch_windows_helper(script)
+            wait_for_helper(ready, proc)
             INSTALL.update(stage="restarting")
             time.sleep(1.5)  # the page shows "Restarting…" before the window closes
             quit_app()

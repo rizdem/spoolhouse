@@ -1,6 +1,7 @@
 """The update check: comparing versions, skipping, announcing once, and GitHub's answers."""
 import io
 import json
+import time
 import urllib.error
 
 import pytest
@@ -212,3 +213,102 @@ def test_an_answer_from_before_2_10_is_asked_again(monkeypatch):
     assert updates.stale() and updates.due()
     updates.check("2.10.0", fetch=lambda current: {"version": "2.10.1", "url": "u", "published": "", "assets": []})
     assert not updates.stale() and not updates.due()
+
+
+# ---------------------------------------------------------------- the helper must really start
+real_sleep = time.sleep  # the tests below replace updates.time.sleep (the same function) to run fast
+
+
+class FakeProc:
+    def __init__(self, exit_code=None):
+        self.exit_code = exit_code
+
+    def poll(self):
+        return self.exit_code
+
+
+def test_the_windows_helper_is_not_started_as_a_detached_process():
+    """Started detached, PowerShell quit at once on some Windows 11 PCs without running the script."""
+    calls = []
+
+    def popen(cmd, **kw):
+        calls.append(kw["creationflags"])
+        return FakeProc()
+    updates.launch_windows_helper(r"C:\T\install.ps1", popen=popen)
+    flags = calls[0]
+    assert not flags & 0x00000008                # DETACHED_PROCESS
+    assert flags & updates.CREATE_NO_WINDOW and flags & updates.CREATE_NEW_PROCESS_GROUP
+    assert flags & updates.CREATE_BREAKAWAY_FROM_JOB and len(calls) == 1
+
+
+def test_if_the_app_is_in_a_job_that_forbids_breaking_away_it_still_starts():
+    calls = []
+
+    def popen(cmd, **kw):
+        calls.append(kw["creationflags"])
+        if kw["creationflags"] & updates.CREATE_BREAKAWAY_FROM_JOB:
+            raise PermissionError("access denied")
+        return FakeProc()
+    updates.launch_windows_helper(r"C:\T\install.ps1", popen=popen)
+    assert len(calls) == 2 and not calls[1] & updates.CREATE_BREAKAWAY_FROM_JOB and calls[1] & updates.CREATE_NO_WINDOW
+
+
+def test_waiting_for_the_helper_to_say_it_has_started(tmp_path, monkeypatch):
+    ready = str(tmp_path / "helper-started")
+    open(ready, "w").close()
+    updates.wait_for_helper(ready, FakeProc())  # started: no problem
+    gone = str(tmp_path / "never")
+    with pytest.raises(IOError, match="couldn't start the installer"):  # the helper quit without starting
+        updates.wait_for_helper(gone, FakeProc(exit_code=0))
+    monkeypatch.setattr(updates, "HELPER_WAIT", 0.3)
+    with pytest.raises(IOError, match="hasn't closed"):  # or never answered
+        updates.wait_for_helper(gone, FakeProc())
+
+
+def test_the_windows_helper_starts_by_saying_so_and_logs_each_step():
+    script = updates.windows_helper(r"C:\T\setup.exe", r"C:\Apps\Spoolhouse\Spoolhouse.exe", 42, r"C:\T\update.log", r"C:\T\started")
+    assert script.index(r"New-Item -ItemType File -Path 'C:\T\started'") < script.index("Wait-Process")  # before anything else
+    assert "installer finished" in script and "opening Spoolhouse" in script
+    assert "Spoolhouse did not close in time" in script  # an app that won't close is never installed over
+
+
+def start(monkeypatch, tmp_path, platform, popen, quit_calls):
+    monkeypatch.setattr(updates.sys, "platform", platform)
+    monkeypatch.setattr(updates, "installable", lambda latest: True)
+    monkeypatch.setattr(updates, "asset_for", lambda latest: {"name": "x", "url": "u", "size": 3, "sha256": "0"})
+    monkeypatch.setattr(updates, "download", lambda asset, folder, progress=None, opener=None: str(tmp_path / "dl"))
+    monkeypatch.setattr(updates, "unpack_mac", lambda *a: str(tmp_path / "New.app"))
+    monkeypatch.setattr(updates, "app_bundle", lambda: str(tmp_path / "Spoolhouse.app"))
+    monkeypatch.setattr(updates, "HELPER_WAIT", 0.5)
+    monkeypatch.setattr(updates.time, "sleep", lambda s: None)
+    monkeypatch.setattr(updates.subprocess, "Popen", popen)
+    updates.INSTALL.update(stage="", done=0, total=0, error="")
+    updates.start_install({"version": "9.9.9"}, lambda: quit_calls.append(1), str(tmp_path / "update.log"))
+    for _ in range(100):
+        if updates.INSTALL["stage"] in ("restarting", "error"):
+            break
+        real_sleep(0.02)
+
+
+@pytest.mark.parametrize("platform", ["win32", "darwin"])
+def test_the_app_stays_open_if_the_helper_never_starts(monkeypatch, tmp_path, platform):
+    quits = []
+    start(monkeypatch, tmp_path, platform, lambda *a, **k: FakeProc(exit_code=0), quits)
+    assert updates.INSTALL["stage"] == "error" and "couldn't start the installer" in updates.INSTALL["error"]
+    assert quits == []  # Spoolhouse is still open, and says why
+
+
+def test_the_app_quits_once_the_helper_has_started(monkeypatch, tmp_path):
+    quits = []
+
+    def popen(cmd, **kw):  # a helper that gets going: it creates the ready file first
+        script = open(cmd[-1], encoding="utf-8-sig").read()
+        import re
+        open(re.search(r"New-Item -ItemType File -Path '([^']+)'", script).group(1), "w").close()
+        return FakeProc()
+    start(monkeypatch, tmp_path, "win32", popen, quits)
+    for _ in range(100):
+        if quits:
+            break
+        real_sleep(0.02)
+    assert updates.INSTALL["stage"] == "restarting" and quits == [1]

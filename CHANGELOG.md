@@ -3,6 +3,17 @@
 Versions follow [semantic versioning](https://semver.org): **major** for big or breaking
 changes, **minor** for new features, **patch** for bug fixes.
 
+## 2.11.1 - 2026-11-08
+
+### Fixed
+- **Updating from inside the app on Windows.** On some Windows PCs, Install update closed Spoolhouse but the
+  installer never started, so nothing reopened and the old version stayed. The installer helper is now started
+  in a way that works there. Spoolhouse also now waits for the helper to confirm it has started before it
+  closes: if it can't start, Spoolhouse stays open and says so (with a Download button) instead of
+  disappearing. The helper keeps a step-by-step `update.log` in Spoolhouse's data folder.
+- **Because the old version does the updating,** a PC where this happened needs 2.11.1 installed by hand once
+  (download it and run the installer); updates from then on work from inside the app.
+
 ## 2.11.0 - 2026-11-08
 
 ### Added
